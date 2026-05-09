@@ -243,7 +243,7 @@
   </div>
 
   <script>
-    let isBangla = false;
+   let isBangla = false;
 
     function toggleLanguage() {
       isBangla = !isBangla;
@@ -263,18 +263,28 @@
         heart: 'heart-circulation.html'
       };
       
-      // Cyber-style feedback
-      const btn = event.currentTarget.querySelector('.open-btn');
-      btn.innerText = isBangla ? "লোড হচ্ছে..." : "LOADING...";
+      // Cyber-style feedback on the button
+      const card = event.currentTarget;
+      const btn = card.querySelector('.open-btn');
+      const originalText = btn.innerText;
+      btn.innerText = isBangla ? "লোড হচ্ছে..." : "INITIALIZING...";
       
+      // Brief delay for "tech feel" then redirect in SAME TAB
       setTimeout(() => {
-        if (urls[sim]) window.open(urls[sim], '_blank');
-        btn.innerText = isBangla ? "স্ক্যান শুরু করুন" : "INITIATE SCAN";
-      }, 600);
+        if (urls[sim]) {
+            window.location.href = urls[sim];
+        }
+      }, 400);
     }
 
     function goToPortal() {
-      window.open('https://stounchvicinity65.github.io/portal/', '_blank');
+      const portalBtn = document.querySelector('.left-corner');
+      portalBtn.innerText = isBangla ? "যাওযা হচ্ছে..." : "REDIRECTING...";
+      
+      // Redirect to main portal in SAME TAB
+      setTimeout(() => {
+        window.location.href = 'https://stounchvicinity65.github.io/portal/';
+      }, 500);
     }
   </script>
 </body>

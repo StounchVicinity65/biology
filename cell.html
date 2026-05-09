@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cell Biology — Interactive Diagram</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:      #04080f;
+      --card:    rgba(5,14,32,0.90);
+      --blue:    #90cdf4;
+      --blue-d:  #4a90e2;
+      --green:   #68d391;
+      --green-d: #276749;
+      --yellow:  #f6e05e;
+      --orange:  #f6ad55;
+      --pink:    #f687b3;
+      --purple:  #b794f4;
+      --dim:     #8ba3bb;
+      --teal:    #4fd1c5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Exo 2', sans-serif;
+      background: var(--bg);
+      color: #f0f0f0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body.bangla { font-family: 'Noto Serif Bengali', sans-serif; }
+
+    #bgLayer {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse at 15% 40%, rgba(104,211,145,0.055) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 60%, rgba(144,205,244,0.04) 0%, transparent 50%),
+        linear-gradient(145deg, rgba(4,18,12,0.97), rgba(4,12,26,0.98));
+    }
+    #bgGrid {
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(104,211,145,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(104,211,145,0.018) 1px, transparent 1px);
+      background-size: 44px 44px;
+    }
+
+    .wrapper { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* TOP BAR */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 1.5rem;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(104,211,145,0.12);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .back-btn {
+      text-decoration: none; color: var(--dim);
+      background: rgba(0,0,0,0.4); padding: 0.4rem 0.9rem; border-radius: 6px;
+      font-size: 0.85rem; border: 1px solid rgba(104,211,145,0.18);
+      transition: all 0.2s; font-family: 'Share Tech Mono', monospace;
+    }
+    .back-btn:hover { color: var(--green); border-color: var(--green); background: rgba(104,211,145,0.1); }
+    .page-title {
+      font-family: 'Exo 2', sans-serif; font-size: 1.35rem; font-weight: 900; font-style: italic;
+      color: var(--green); text-shadow: 0 0 22px rgba(104,211,145,0.35);
+    }
+    .topbar-right { display: flex; gap: 0.6rem; align-items: center; }
+    .toggle-btn, #languageToggle {
+      background: rgba(0,0,0,0.5); color: white; padding: 0.4rem 0.9rem;
+      border: 1px solid rgba(104,211,145,0.28); border-radius: 20px;
+      font-size: 0.78rem; font-weight: 700; cursor: pointer;
+      font-family: 'Share Tech Mono', monospace; transition: all 0.2s; letter-spacing: 0.04em;
+    }
+    .toggle-btn:hover, #languageToggle:hover { background: var(--green-d); border-color: var(--green); }
+    .toggle-btn.animal { border-color: rgba(144,205,244,0.4); }
+    .toggle-btn.animal:hover { background: rgba(74,144,226,0.3); border-color: var(--blue); }
+
+    /* MAIN LAYOUT */
+    .main {
+      display: flex; gap: 0; flex: 1;
+      padding: 0; overflow: hidden;
+    }
+
+    /* INFO SIDEBAR */
+    #infoPanel {
+      width: 300px; min-width: 300px;
+      background: var(--card);
+      border-right: 1px solid rgba(104,211,145,0.12);
+      display: flex; flex-direction: column;
+      overflow-y: auto; overflow-x: hidden;
+    }
+    #infoPanel::-webkit-scrollbar { width: 3px; }
+    #infoPanel::-webkit-scrollbar-thumb { background: rgba(104,211,145,0.2); border-radius: 2px; }
+
+    .info-header {
+      padding: 1rem 1.2rem 0.7rem;
+      border-bottom: 1px solid rgba(104,211,145,0.1);
+      background: rgba(0,0,0,0.3);
+    }
+    .info-idle {
+      padding: 1.2rem;
+      display: flex; flex-direction: column; gap: 0.6rem;
+    }
+    .idle-hint {
+      font-family: 'Share Tech Mono', monospace; font-size: 0.65rem;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(104,211,145,0.4); text-align: center; margin-bottom: 0.3rem;
+    }
+
+    /* Organelle list in idle state */
+    .organelle-list { display: flex; flex-direction: column; gap: 0.3rem; }
+    .org-item {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.4rem 0.6rem; border-radius: 6px;
+      border: 1px solid rgba(104,211,145,0.08);
+      background: rgba(0,0,0,0.25);
+      cursor: pointer; transition: all 0.18s;
+      font-size: 0.8rem;
+    }
+    .org-item:hover { background: rgba(104,211,145,0.08); border-color: rgba(104,211,145,0.25); }
+    .org-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .org-name { color: #d0e8d8; font-weight: 500; }
+    .org-name-bn { color: rgba(208,232,216,0.7); font-size: 0.72rem; }
+
+    /* Active info card */
+    #infoCard {
+      padding: 1.2rem; display: none; flex-direction: column; gap: 0.7rem;
+    }
+    #infoCard.show { display: flex; }
+
+    .info-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 3px 10px; border-radius: 20px; font-size: 0.65rem;
+      font-family: 'Share Tech Mono', monospace; letter-spacing: 0.08em;
+      text-transform: uppercase; width: fit-content;
+      border: 1px solid; margin-bottom: 0.1rem;
+    }
+    .info-name-en {
+      font-size: 1.1rem; font-weight: 700; color: var(--green); line-height: 1.2;
+    }
+    .info-name-bn {
+      font-size: 0.9rem; color: rgba(104,211,145,0.7);
+      font-family: 'Noto Serif Bengali', sans-serif;
+    }
+    .info-desc {
+      font-size: 0.83rem; line-height: 1.72; color: rgba(200,230,210,0.82);
+    }
+    .info-desc-bn {
+      font-size: 0.8rem; line-height: 1.78; color: rgba(200,230,210,0.65);
+      font-family: 'Noto Serif Bengali', sans-serif;
+    }
+    .info-facts {
+      background: rgba(0,0,0,0.35); border-radius: 8px;
+      padding: 0.65rem 0.8rem; border-left: 2px solid var(--green);
+    }
+    .fact-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      font-family: 'Share Tech Mono', monospace; font-size: 0.72rem;
+      color: var(--dim); padding: 0.2rem 0;
+      border-bottom: 1px solid rgba(104,211,145,0.06);
+    }
+    .fact-row:last-child { border-bottom: none; }
+    .fact-val { color: var(--yellow); }
+    .back-to-list {
+      background: none; border: 1px solid rgba(104,211,145,0.2); color: var(--green);
+      padding: 0.35rem 0.7rem; border-radius: 6px; font-size: 0.75rem;
+      cursor: pointer; font-family: 'Share Tech Mono', monospace; transition: all 0.18s;
+      width: fit-content;
+    }
+    .back-to-list:hover { background: rgba(104,211,145,0.1); }
+
+    /* CELL CANVAS AREA */
+    #cellArea {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden; min-height: 0;
+    }
+
+    #cellSvg {
+      max-width: 100%; max-height: 100%;
+      width: 700px; height: 620px;
+      filter: drop-shadow(0 0 40px rgba(104,211,145,0.12));
+    }
+
+    /* SVG organelle hover effects */
+    .organelle {
+      cursor: pointer;
+      transition: filter 0.2s;
+    }
+    .organelle:hover { filter: brightness(1.4) drop-shadow(0 0 8px currentColor); }
+    .organelle.active { filter: brightness(1.6) drop-shadow(0 0 14px currentColor); }
+
+    /* Tooltip for mobile / quick label */
+    #svgTooltip {
+      position: absolute; pointer-events: none;
+      background: rgba(4,18,12,0.95); border: 1px solid rgba(104,211,145,0.35);
+      border-radius: 6px; padding: 5px 10px;
+      font-family: 'Share Tech Mono', monospace; font-size: 0.72rem;
+      color: var(--green); white-space: nowrap;
+      opacity: 0; transition: opacity 0.15s;
+      z-index: 50;
+    }
+
+    /* Cell type label */
+    #cellTypeLabel {
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      font-family: 'Share Tech Mono', monospace; font-size: 0.62rem;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(104,211,145,0.5);
+      background: rgba(0,0,0,0.5); padding: 3px 12px; border-radius: 20px;
+      border: 1px solid rgba(104,211,145,0.15);
+    }
+
+    /* Legend strip at bottom */
+    #legend {
+      position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+      background: rgba(0,0,0,0.55); border-radius: 8px; padding: 5px 12px;
+      border: 1px solid rgba(104,211,145,0.1);
+    }
+    .leg-item {
+      display: flex; align-items: center; gap: 4px;
+      font-family: 'Share Tech Mono', monospace; font-size: 0.55rem;
+      color: rgba(200,230,210,0.6); letter-spacing: 0.04em; cursor: pointer;
+    }
+    .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 800px) {
+      .main { flex-direction: column; }
+      #infoPanel { width: 100%; min-width: auto; max-height: 220px; border-right: none; border-bottom: 1px solid rgba(104,211,145,0.12); }
+      #cellSvg { width: 100%; height: auto; }
+    }
+  </style>
+</head>
+<body>
+<div id="bgLayer"></div>
+<div id="bgGrid"></div>
+<div class="wrapper">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a href="index.html" class="back-btn">← <span class="lang-en">Back</span><span class="lang-bn hidden">পিছনে</span></a>
+    <div class="page-title">
+      <span class="lang-en">🔬 Cell Biology</span>
+      <span class="lang-bn hidden">🔬 কোষ জীববিজ্ঞান</span>
+    </div>
+    <div class="topbar-right">
+      <button class="toggle-btn" id="cellToggle" onclick="toggleCell()">
+        <span id="toggleLabel">🌿 Switch to Plant</span>
+      </button>
+      <button id="languageToggle" onclick="toggleLang()">বাংলা / EN</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- LEFT INFO PANEL -->
+    <div id="infoPanel">
+      <div class="info-header">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(104,211,145,0.4);margin-bottom:0.3rem;">
+          <span class="lang-en">Organelles</span><span class="lang-bn hidden">অঙ্গাণু</span>
+        </div>
+        <div id="cellTypeName" style="font-size:0.95rem;font-weight:700;color:var(--green);">Animal Cell</div>
+      </div>
+
+      <!-- Idle list -->
+      <div class="info-idle" id="idleList">
+        <div class="idle-hint lang-en">Hover or click an organelle</div>
+        <div class="idle-hint lang-bn hidden">অঙ্গাণুতে হোভার বা ক্লিক করুন</div>
+        <div class="organelle-list" id="orgList"></div>
+      </div>
+
+      <!-- Active info card -->
+      <div id="infoCard">
+        <button class="back-to-list" onclick="showIdle()">← <span class="lang-en">All organelles</span><span class="lang-bn hidden">সব অঙ্গাণু</span></button>
+        <div>
+          <div class="info-badge" id="infoBadge"></div>
+          <div class="info-name-en lang-en" id="infoNameEn"></div>
+          <div class="info-name-bn lang-bn hidden" id="infoNameBn"></div>
+        </div>
+        <div class="info-desc lang-en" id="infoDescEn"></div>
+        <div class="info-desc-bn lang-bn hidden" id="infoDescBn"></div>
+        <div class="info-facts" id="infoFacts"></div>
+      </div>
+    </div>
+
+    <!-- CELL SVG AREA -->
+    <div id="cellArea">
+      <div id="cellTypeLabel">
+        <span class="lang-en" id="ctLabelEn">Animal Cell — Eukaryote</span>
+        <span class="lang-bn hidden" id="ctLabelBn">প্রাণী কোষ — ইউক্যারিওট</span>
+      </div>
+
+      <svg id="cellSvg" viewBox="0 0 700 620" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Cell membrane gradient - animal -->
+          <radialGradient id="animalBg" cx="50%" cy="48%" r="50%">
+            <stop offset="0%"   stop-color="#0d2a1a" stop-opacity="0.95"/>
+            <stop offset="85%"  stop-color="#071a10" stop-opacity="0.98"/>
+            <stop offset="100%" stop-color="#040f09" stop-opacity="1"/>
+          </radialGradient>
+          <!-- Plant cell background -->
+          <radialGradient id="plantBg" cx="50%" cy="48%" r="50%">
+            <stop offset="0%"   stop-color="#0a2010" stop-opacity="0.95"/>
+            <stop offset="85%"  stop-color="#061808" stop-opacity="0.98"/>
+            <stop offset="100%" stop-color="#030c04" stop-opacity="1"/>
+          </radialGradient>
+          <!-- Nucleus gradient -->
+          <radialGradient id="nucGrad" cx="45%" cy="40%" r="55%">
+            <stop offset="0%"   stop-color="#2d3080"/>
+            <stop offset="100%" stop-color="#151840"/>
+          </radialGradient>
+          <!-- Nucleolus -->
+          <radialGradient id="nucloGrad" cx="40%" cy="40%" r="60%">
+            <stop offset="0%"   stop-color="#5060cc"/>
+            <stop offset="100%" stop-color="#2535a0"/>
+          </radialGradient>
+          <!-- Mitochondria gradient -->
+          <radialGradient id="mitoGrad" cx="40%" cy="35%" r="60%">
+            <stop offset="0%"   stop-color="#7c3a1a"/>
+            <stop offset="100%" stop-color="#3d1c0a"/>
+          </radialGradient>
+          <!-- Golgi gradient -->
+          <linearGradient id="golgiGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#1a4a5a"/>
+            <stop offset="100%" stop-color="#0d2a35"/>
+          </linearGradient>
+          <!-- Chloroplast gradient -->
+          <radialGradient id="chloroGrad" cx="40%" cy="35%" r="60%">
+            <stop offset="0%"   stop-color="#1a5c1a"/>
+            <stop offset="100%" stop-color="#0a2e0a"/>
+          </radialGradient>
+          <!-- Vacuole gradient -->
+          <radialGradient id="vacGrad" cx="40%" cy="40%" r="55%">
+            <stop offset="0%"   stop-color="#0a2a3a"/>
+            <stop offset="100%" stop-color="#051520"/>
+          </radialGradient>
+          <!-- Glow filter -->
+          <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="softglow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- ═══════════════ ANIMAL CELL GROUP ═══════════════ -->
+        <g id="animalCell">
+          <!-- Outer glow halo -->
+          <ellipse cx="350" cy="305" rx="278" ry="256" fill="none" stroke="#68d391" stroke-width="1.5" stroke-opacity="0.08" filter="url(#softglow)"/>
+          <!-- Cell membrane -->
+          <ellipse class="organelle" id="a-membrane" cx="350" cy="305" rx="268" ry="248"
+            fill="url(#animalBg)" stroke="#68d391" stroke-width="2.5" stroke-opacity="0.55"
+            stroke-dasharray="6 3"
+            onclick="selectOrg('cell_membrane')" data-key="cell_membrane"/>
+          <!-- Cytoplasm label area -->
+
+          <!-- ER Rough (wavy lines left side) -->
+          <g class="organelle" id="a-rer" onclick="selectOrg('rer')" data-key="rer">
+            <path d="M135,230 Q155,215 165,235 Q175,255 195,240 Q215,225 220,248 Q225,270 205,278 Q185,286 178,268 Q170,250 150,258 Q132,266 135,248 Z"
+              fill="rgba(180,120,40,0.22)" stroke="#c8882c" stroke-width="1.5" stroke-opacity="0.7"/>
+            <path d="M140,238 Q160,225 168,242" fill="none" stroke="#c8882c" stroke-width="1" stroke-opacity="0.5" stroke-dasharray="3 2"/>
+            <path d="M148,255 Q168,242 175,260" fill="none" stroke="#c8882c" stroke-width="1" stroke-opacity="0.5" stroke-dasharray="3 2"/>
+            <!-- Ribosomes on RER -->
+            <circle cx="142" cy="238" r="3" fill="#e0a040" opacity="0.8"/>
+            <circle cx="155" cy="232" r="3" fill="#e0a040" opacity="0.8"/>
+            <circle cx="168" cy="238" r="3" fill="#e0a040" opacity="0.8"/>
+            <circle cx="178" cy="248" r="3" fill="#e0a040" opacity="0.8"/>
+            <circle cx="172" cy="262" r="3" fill="#e0a040" opacity="0.8"/>
+          </g>
+
+          <!-- ER Smooth -->
+          <g class="organelle" id="a-ser" onclick="selectOrg('ser')" data-key="ser">
+            <path d="M148,290 Q165,278 178,295 Q192,312 175,322 Q158,332 148,315 Q138,298 148,290 Z"
+              fill="rgba(220,160,50,0.18)" stroke="#dba030" stroke-width="1.4" stroke-opacity="0.65"/>
+          </g>
+
+          <!-- Free ribosomes (scattered dots) -->
+          <g class="organelle" id="a-ribosome" onclick="selectOrg('ribosome')" data-key="ribosome" opacity="0.85">
+            <circle cx="240" cy="190" r="3.5" fill="#e8b840"/>
+            <circle cx="270" cy="175" r="3.5" fill="#e8b840"/>
+            <circle cx="430" cy="185" r="3.5" fill="#e8b840"/>
+            <circle cx="460" cy="200" r="3.5" fill="#e8b840"/>
+            <circle cx="490" cy="220" r="3.5" fill="#e8b840"/>
+            <circle cx="500" cy="380" r="3.5" fill="#e8b840"/>
+            <circle cx="220" cy="380" r="3.5" fill="#e8b840"/>
+            <circle cx="200" cy="360" r="3.5" fill="#e8b840"/>
+            <circle cx="255" cy="420" r="3.5" fill="#e8b840"/>
+          </g>
+
+          <!-- Golgi apparatus (stacked arcs) -->
+          <g class="organelle" id="a-golgi" onclick="selectOrg('golgi')" data-key="golgi">
+            <path d="M435,330 Q490,320 490,340 Q490,360 435,350 Z" fill="rgba(30,120,160,0.35)" stroke="#30a8d8" stroke-width="2" stroke-opacity="0.8"/>
+            <path d="M440,348 Q498,337 498,358 Q498,378 440,368 Z" fill="rgba(30,120,160,0.3)" stroke="#30a8d8" stroke-width="1.8" stroke-opacity="0.7"/>
+            <path d="M445,366 Q505,354 505,376 Q505,396 445,386 Z" fill="rgba(30,120,160,0.25)" stroke="#30a8d8" stroke-width="1.5" stroke-opacity="0.6"/>
+            <path d="M450,384 Q508,372 508,394 Q508,414 450,404 Z" fill="rgba(30,120,160,0.2)" stroke="#30a8d8" stroke-width="1.3" stroke-opacity="0.55"/>
+            <!-- Vesicles -->
+            <circle cx="430" cy="340" r="7" fill="rgba(30,120,160,0.45)" stroke="#30a8d8" stroke-width="1.5"/>
+            <circle cx="425" cy="358" r="6" fill="rgba(30,120,160,0.4)" stroke="#30a8d8" stroke-width="1.5"/>
+            <circle cx="516" cy="355" r="8" fill="rgba(30,120,160,0.35)" stroke="#30a8d8" stroke-width="1.5"/>
+            <circle cx="520" cy="380" r="6" fill="rgba(30,120,160,0.3)" stroke="#30a8d8" stroke-width="1.5"/>
+          </g>
+
+          <!-- Mitochondria (x3, different angles) -->
+          <g class="organelle" id="a-mito" onclick="selectOrg('mitochondria')" data-key="mitochondria">
+            <!-- Mito 1 -->
+            <ellipse cx="410" cy="240" rx="40" ry="18" fill="url(#mitoGrad)" stroke="#e06020" stroke-width="2" stroke-opacity="0.75" transform="rotate(-20,410,240)"/>
+            <path d="M376,230 Q390,240 376,250" fill="none" stroke="#e06020" stroke-width="1.2" stroke-opacity="0.5" transform="rotate(-20,410,240)"/>
+            <path d="M386,225 Q400,240 386,255" fill="none" stroke="#e06020" stroke-width="1.2" stroke-opacity="0.5" transform="rotate(-20,410,240)"/>
+            <path d="M396,222 Q410,240 396,258" fill="none" stroke="#e06020" stroke-width="1.2" stroke-opacity="0.5" transform="rotate(-20,410,240)"/>
+            <!-- Mito 2 -->
+            <ellipse cx="245" cy="430" rx="36" ry="15" fill="url(#mitoGrad)" stroke="#e06020" stroke-width="2" stroke-opacity="0.7" transform="rotate(15,245,430)"/>
+            <path d="M214,425 Q224,432 214,439" fill="none" stroke="#e06020" stroke-width="1.2" stroke-opacity="0.5" transform="rotate(15,245,430)"/>
+            <path d="M224,421 Q234,432 224,443" fill="none" stroke="#e06020" stroke-width="1.2" stroke-opacity="0.5" transform="rotate(15,245,430)"/>
+            <!-- Mito 3 -->
+            <ellipse cx="500" cy="450" rx="30" ry="13" fill="url(#mitoGrad)" stroke="#e06020" stroke-width="1.8" stroke-opacity="0.65" transform="rotate(-10,500,450)"/>
+            <path d="M478,446 Q486,452 478,458" fill="none" stroke="#e06020" stroke-width="1" stroke-opacity="0.5" transform="rotate(-10,500,450)"/>
+            <path d="M486,443 Q494,452 486,461" fill="none" stroke="#e06020" stroke-width="1" stroke-opacity="0.5" transform="rotate(-10,500,450)"/>
+          </g>
+
+          <!-- Lysosome (animal only) -->
+          <g class="organelle" id="a-lyso" onclick="selectOrg('lysosome')" data-key="lysosome">
+            <circle cx="460" cy="430" r="22" fill="rgba(200,50,90,0.25)" stroke="#e0305a" stroke-width="2" stroke-opacity="0.75"/>
+            <circle cx="460" cy="430" r="14" fill="rgba(200,50,90,0.18)" stroke="#e0305a" stroke-width="1" stroke-opacity="0.4"/>
+            <text x="460" y="435" text-anchor="middle" font-size="11" fill="#e0305a" opacity="0.7" font-family="Consolas">L</text>
+          </g>
+
+          <!-- Centriole (animal only) -->
+          <g class="organelle" id="a-centriole" onclick="selectOrg('centriole')" data-key="centriole">
+            <rect x="545" cy="280" x="538" y="275" width="22" height="10" rx="2" fill="rgba(150,180,220,0.3)" stroke="#90b4dc" stroke-width="1.5" stroke-opacity="0.8"/>
+            <rect x="538" y="290" width="22" height="10" rx="2" fill="rgba(150,180,220,0.25)" stroke="#90b4dc" stroke-width="1.5" stroke-opacity="0.75" transform="rotate(90,549,295)"/>
+            <!-- triplets -->
+            <line x1="540" y1="278" x2="540" y2="282" stroke="#90b4dc" stroke-width="1" opacity="0.6"/>
+            <line x1="545" y1="278" x2="545" y2="282" stroke="#90b4dc" stroke-width="1" opacity="0.6"/>
+            <line x1="550" y1="278" x2="550" y2="282" stroke="#90b4dc" stroke-width="1" opacity="0.6"/>
+            <line x1="555" y1="278" x2="555" y2="282" stroke="#90b4dc" stroke-width="1" opacity="0.6"/>
+          </g>
+
+          <!-- Vacuole (small in animal) -->
+          <g class="organelle" id="a-vacuole" onclick="selectOrg('vacuole_small')" data-key="vacuole_small">
+            <circle cx="175" cy="400" r="25" fill="rgba(40,120,160,0.2)" stroke="#40a0c8" stroke-width="1.5" stroke-opacity="0.6"/>
+            <circle cx="320" cy="450" r="16" fill="rgba(40,120,160,0.18)" stroke="#40a0c8" stroke-width="1.2" stroke-opacity="0.55"/>
+          </g>
+
+          <!-- Peroxisome -->
+          <g class="organelle" id="a-peroxisome" onclick="selectOrg('peroxisome')" data-key="peroxisome">
+            <circle cx="390" cy="440" r="14" fill="rgba(100,200,180,0.2)" stroke="#60c8b0" stroke-width="1.5" stroke-opacity="0.7"/>
+            <text x="390" y="445" text-anchor="middle" font-size="9" fill="#60c8b0" opacity="0.7" font-family="Consolas">P</text>
+          </g>
+
+          <!-- Cytoskeleton hints -->
+          <g class="organelle" id="a-cytoskeleton" onclick="selectOrg('cytoskeleton')" data-key="cytoskeleton" opacity="0.4">
+            <line x1="220" y1="200" x2="490" y2="480" stroke="#a0d0c0" stroke-width="0.8" stroke-dasharray="4 6"/>
+            <line x1="490" y1="200" x2="200" y2="430" stroke="#a0d0c0" stroke-width="0.8" stroke-dasharray="4 6"/>
+            <line x1="350" y1="100" x2="350" y2="520" stroke="#a0d0c0" stroke-width="0.8" stroke-dasharray="4 6"/>
+            <line x1="130" y1="305" x2="590" y2="305" stroke="#a0d0c0" stroke-width="0.8" stroke-dasharray="4 6"/>
+          </g>
+
+          <!-- Nuclear envelope -->
+          <ellipse cx="350" cy="295" rx="108" ry="95" fill="rgba(30,35,110,0.25)" stroke="#6070d8" stroke-width="2.5" stroke-opacity="0.65" stroke-dasharray="none" filter="url(#glow)"/>
+          <!-- Nuclear pores -->
+          <g stroke="#6070d8" stroke-width="1.2" stroke-opacity="0.5" fill="rgba(96,112,216,0.3)">
+            <circle cx="350" cy="200" r="4.5"/><circle cx="389" cy="208" r="4.5"/><circle cx="420" cy="232" r="4.5"/>
+            <circle cx="440" cy="265" r="4.5"/><circle cx="440" cy="300" r="4.5"/><circle cx="425" cy="337" r="4.5"/>
+            <circle cx="395" cy="362" r="4.5"/><circle cx="350" cy="375" r="4.5"/><circle cx="305" cy="362" r="4.5"/>
+            <circle cx="275" cy="337" r="4.5"/><circle cx="260" cy="300" r="4.5"/><circle cx="260" cy="265" r="4.5"/>
+            <circle cx="280" cy="232" r="4.5"/><circle cx="311" cy="208" r="4.5"/>
+          </g>
+
+          <!-- Nucleus -->
+          <ellipse class="organelle" id="a-nucleus" cx="350" cy="295" rx="98" ry="85"
+            fill="url(#nucGrad)" stroke="#8090e0" stroke-width="2" stroke-opacity="0.8"
+            onclick="selectOrg('nucleus')" data-key="nucleus"/>
+
+          <!-- Nucleolus -->
+          <ellipse class="organelle" id="a-nucleolus" cx="338" cy="285" rx="32" ry="26"
+            fill="url(#nucloGrad)" stroke="#7080ee" stroke-width="1.8" stroke-opacity="0.9"
+            onclick="selectOrg('nucleolus')" data-key="nucleolus"/>
+
+          <!-- Chromatin/DNA strands inside nucleus -->
+          <g opacity="0.5" pointer-events="none">
+            <path d="M300,310 Q320,295 340,312 Q360,328 380,310" fill="none" stroke="#a0b0ff" stroke-width="1.5"/>
+            <path d="M305,325 Q325,308 345,325 Q365,342 385,323" fill="none" stroke="#a0b0ff" stroke-width="1.2"/>
+          </g>
+
+          <!-- Cell membrane detail (microvilli hint) -->
+          <g opacity="0.4" pointer-events="none">
+            <line x1="348" y1="57" x2="348" y2="42" stroke="#68d391" stroke-width="2"/>
+            <line x1="362" y1="58" x2="364" y2="43" stroke="#68d391" stroke-width="2"/>
+            <line x1="375" y1="61" x2="380" y2="47" stroke="#68d391" stroke-width="2"/>
+            <line x1="334" y1="58" x2="332" y2="43" stroke="#68d391" stroke-width="2"/>
+            <line x1="321" y1="62" x2="316" y2="48" stroke="#68d391" stroke-width="2"/>
+          </g>
+
+          <!-- Labels -->
+          <g font-family="'Share Tech Mono', monospace" font-size="9.5" fill="#68d391" opacity="0.55" pointer-events="none">
+            <text x="350" y="35">cell membrane</text>
+            <text x="130" y="225">rough ER</text>
+            <text x="437" y="318">Golgi</text>
+            <text x="400" y="210">mitochondria</text>
+            <text x="448" y="420">lysosome</text>
+            <text x="530" y="272">centriole</text>
+            <text x="108" y="398">vacuole</text>
+            <text x="330" y="292">nucleolus</text>
+          </g>
+        </g>
+
+        <!-- ═══════════════ PLANT CELL GROUP ═══════════════ -->
+        <g id="plantCell" display="none">
+          <!-- Cell wall (outer rigid) -->
+          <rect class="organelle" id="p-cellwall" x="42" y="38" width="616" height="544" rx="18"
+            fill="rgba(80,120,30,0.18)" stroke="#a0c840" stroke-width="6" stroke-opacity="0.7"
+            onclick="selectOrg('cell_wall')" data-key="cell_wall"/>
+          <!-- Cell membrane inside wall -->
+          <rect class="organelle" id="p-membrane" x="56" y="52" width="588" height="516" rx="12"
+            fill="rgba(10,40,14,0.92)" stroke="#68d391" stroke-width="2" stroke-opacity="0.5"
+            stroke-dasharray="5 3"
+            onclick="selectOrg('cell_membrane')" data-key="cell_membrane"/>
+
+          <!-- Large central vacuole -->
+          <ellipse class="organelle" id="p-vacuole" cx="350" cy="330" rx="165" ry="145"
+            fill="url(#vacGrad)" stroke="#40a8d8" stroke-width="2.5" stroke-opacity="0.7"
+            onclick="selectOrg('vacuole_large')" data-key="vacuole_large"/>
+          <text x="350" y="280" text-anchor="middle" font-size="9" fill="#40a8d8" opacity="0.5" font-family="'Share Tech Mono', monospace" pointer-events="none">Central Vacuole</text>
+
+          <!-- Chloroplasts (x4) -->
+          <g class="organelle" id="p-chloro" onclick="selectOrg('chloroplast')" data-key="chloroplast">
+            <!-- 1 -->
+            <ellipse cx="155" cy="180" rx="42" ry="20" fill="url(#chloroGrad)" stroke="#40c840" stroke-width="2" stroke-opacity="0.8" transform="rotate(-15,155,180)"/>
+            <line x1="120" y1="178" x2="190" y2="178" stroke="#40c840" stroke-width="1" stroke-opacity="0.4" transform="rotate(-15,155,180)"/>
+            <line x1="120" y1="183" x2="190" y2="183" stroke="#40c840" stroke-width="1" stroke-opacity="0.4" transform="rotate(-15,155,180)"/>
+            <!-- 2 -->
+            <ellipse cx="540" cy="175" rx="38" ry="18" fill="url(#chloroGrad)" stroke="#40c840" stroke-width="2" stroke-opacity="0.75" transform="rotate(12,540,175)"/>
+            <line x1="507" y1="173" x2="573" y2="173" stroke="#40c840" stroke-width="1" stroke-opacity="0.4" transform="rotate(12,540,175)"/>
+            <line x1="507" y1="178" x2="573" y2="178" stroke="#40c840" stroke-width="1" stroke-opacity="0.4" transform="rotate(12,540,175)"/>
+            <!-- 3 -->
+            <ellipse cx="140" cy="440" rx="36" ry="17" fill="url(#chloroGrad)" stroke="#40c840" stroke-width="1.8" stroke-opacity="0.7" transform="rotate(10,140,440)"/>
+            <line x1="108" y1="438" x2="172" y2="438" stroke="#40c840" stroke-width="1" stroke-opacity="0.35" transform="rotate(10,140,440)"/>
+            <!-- 4 -->
+            <ellipse cx="548" cy="440" rx="36" ry="17" fill="url(#chloroGrad)" stroke="#40c840" stroke-width="1.8" stroke-opacity="0.7" transform="rotate(-8,548,440)"/>
+            <line x1="516" y1="438" x2="580" y2="438" stroke="#40c840" stroke-width="1" stroke-opacity="0.35" transform="rotate(-8,548,440)"/>
+          </g>
+
+          <!-- ER (rough) - plant -->
+          <g class="organelle" id="p-rer" onclick="selectOrg('rer')" data-key="rer">
+            <path d="M165,245 Q190,230 200,252 Q210,274 188,280 Q166,286 165,265 Z"
+              fill="rgba(180,120,40,0.2)" stroke="#c8882c" stroke-width="1.5" stroke-opacity="0.65"/>
+            <circle cx="168" cy="248" r="3" fill="#e0a040" opacity="0.8"/>
+            <circle cx="180" cy="242" r="3" fill="#e0a040" opacity="0.8"/>
+            <circle cx="192" cy="248" r="3" fill="#e0a040" opacity="0.8"/>
+          </g>
+
+          <!-- Golgi - plant -->
+          <g class="organelle" id="p-golgi" onclick="selectOrg('golgi')" data-key="golgi">
+            <path d="M535,300 Q585,290 585,308 Q585,326 535,318 Z" fill="rgba(30,120,160,0.35)" stroke="#30a8d8" stroke-width="2" stroke-opacity="0.75"/>
+            <path d="M538,316 Q590,305 590,324 Q590,343 538,334 Z" fill="rgba(30,120,160,0.28)" stroke="#30a8d8" stroke-width="1.7" stroke-opacity="0.65"/>
+            <path d="M541,332 Q594,320 594,340 Q594,360 541,350 Z" fill="rgba(30,120,160,0.22)" stroke="#30a8d8" stroke-width="1.4" stroke-opacity="0.55"/>
+            <circle cx="530" cy="310" r="7" fill="rgba(30,120,160,0.4)" stroke="#30a8d8" stroke-width="1.5"/>
+            <circle cx="603" cy="320" r="7" fill="rgba(30,120,160,0.35)" stroke="#30a8d8" stroke-width="1.5"/>
+          </g>
+
+          <!-- Mitochondria - plant -->
+          <g class="organelle" id="p-mito" onclick="selectOrg('mitochondria')" data-key="mitochondria">
+            <ellipse cx="175" cy="310" rx="34" ry="15" fill="url(#mitoGrad)" stroke="#e06020" stroke-width="1.8" stroke-opacity="0.7" transform="rotate(-12,175,310)"/>
+            <path d="M146,306 Q156,312 146,318" fill="none" stroke="#e06020" stroke-width="1.2" stroke-opacity="0.5" transform="rotate(-12,175,310)"/>
+            <path d="M156,302 Q166,312 156,322" fill="none" stroke="#e06020" stroke-width="1.2" stroke-opacity="0.5" transform="rotate(-12,175,310)"/>
+            <ellipse cx="540" cy="500" rx="30" ry="13" fill="url(#mitoGrad)" stroke="#e06020" stroke-width="1.6" stroke-opacity="0.65" transform="rotate(8,540,500)"/>
+            <path d="M516,497 Q524,502 516,507" fill="none" stroke="#e06020" stroke-width="1" stroke-opacity="0.45" transform="rotate(8,540,500)"/>
+          </g>
+
+          <!-- Plasmodesmata (on wall) -->
+          <g class="organelle" id="p-plasmo" onclick="selectOrg('plasmodesmata')" data-key="plasmodesmata" opacity="0.8">
+            <line x1="42" y1="200" x2="56" y2="200" stroke="#a0c840" stroke-width="3" stroke-opacity="0.9"/>
+            <line x1="42" y1="260" x2="56" y2="260" stroke="#a0c840" stroke-width="3" stroke-opacity="0.9"/>
+            <line x1="42" y1="340" x2="56" y2="340" stroke="#a0c840" stroke-width="3" stroke-opacity="0.9"/>
+            <line x1="42" y1="420" x2="56" y2="420" stroke="#a0c840" stroke-width="3" stroke-opacity="0.9"/>
+            <line x1="644" y1="200" x2="658" y2="200" stroke="#a0c840" stroke-width="3" stroke-opacity="0.9"/>
+            <line x1="644" y1="300" x2="658" y2="300" stroke="#a0c840" stroke-width="3" stroke-opacity="0.9"/>
+            <line x1="644" y1="400" x2="658" y2="400" stroke="#a0c840" stroke-width="3" stroke-opacity="0.9"/>
+          </g>
+
+          <!-- Ribosomes - plant -->
+          <g class="organelle" id="p-ribosome" onclick="selectOrg('ribosome')" data-key="ribosome" opacity="0.85">
+            <circle cx="520" cy="220" r="3.5" fill="#e8b840"/>
+            <circle cx="110" cy="220" r="3.5" fill="#e8b840"/>
+            <circle cx="108" cy="380" r="3.5" fill="#e8b840"/>
+            <circle cx="590" cy="380" r="3.5" fill="#e8b840"/>
+          </g>
+
+          <!-- Nuclear envelope + pores - plant -->
+          <ellipse cx="350" cy="205" rx="100" ry="88" fill="rgba(30,35,110,0.28)" stroke="#6070d8" stroke-width="2.5" stroke-opacity="0.65" filter="url(#glow)"/>
+          <g stroke="#6070d8" stroke-width="1.2" stroke-opacity="0.5" fill="rgba(96,112,216,0.3)">
+            <circle cx="350" cy="118" r="4.5"/><circle cx="385" cy="127" r="4.5"/>
+            <circle cx="415" cy="148" r="4.5"/><circle cx="432" cy="180" r="4.5"/>
+            <circle cx="432" cy="212" r="4.5"/><circle cx="415" cy="244" r="4.5"/>
+            <circle cx="385" cy="265" r="4.5"/><circle cx="350" cy="275" r="4.5"/>
+            <circle cx="315" cy="265" r="4.5"/><circle cx="285" cy="244" r="4.5"/>
+            <circle cx="268" cy="212" r="4.5"/><circle cx="268" cy="180" r="4.5"/>
+            <circle cx="285" cy="148" r="4.5"/><circle cx="315" cy="127" r="4.5"/>
+          </g>
+
+          <!-- Nucleus - plant -->
+          <ellipse class="organelle" id="p-nucleus" cx="350" cy="205" rx="90" ry="78"
+            fill="url(#nucGrad)" stroke="#8090e0" stroke-width="2" stroke-opacity="0.8"
+            onclick="selectOrg('nucleus')" data-key="nucleus"/>
+          <ellipse class="organelle" id="p-nucleolus" cx="340" cy="196" rx="28" ry="23"
+            fill="url(#nucloGrad)" stroke="#7080ee" stroke-width="1.8" stroke-opacity="0.9"
+            onclick="selectOrg('nucleolus')" data-key="nucleolus"/>
+          <g opacity="0.5" pointer-events="none">
+            <path d="M304,220 Q322,207 340,222 Q358,237 376,218" fill="none" stroke="#a0b0ff" stroke-width="1.5"/>
+          </g>
+
+          <!-- Amyloplast (starch grain) -->
+          <g class="organelle" id="p-amyloplast" onclick="selectOrg('amyloplast')" data-key="amyloplast">
+            <ellipse cx="420" cy="480" rx="22" ry="16" fill="rgba(200,180,80,0.25)" stroke="#d0c040" stroke-width="1.5" stroke-opacity="0.7"/>
+            <ellipse cx="420" cy="480" rx="12" ry="9" fill="rgba(200,180,80,0.2)" stroke="#d0c040" stroke-width="1" stroke-opacity="0.5"/>
+          </g>
+
+          <!-- Labels -->
+          <g font-family="'Share Tech Mono', monospace" font-size="9.5" fill="#a0c840" opacity="0.55" pointer-events="none">
+            <text x="350" y="28">cell wall</text>
+            <text x="95" y="168">chloroplast</text>
+            <text x="340" y="205">nucleolus</text>
+            <text x="350" y="410">central vacuole</text>
+            <text x="530" y="285">Golgi</text>
+            <text x="85" y="305">mitochondria</text>
+            <text x="395" y="472">amyloplast</text>
+          </g>
+        </g>
+      </svg>
+
+      <div id="svgTooltip"></div>
+      <div id="cellTypeLabel">
+        <span class="lang-en" id="ctLabelEn">Animal Cell — Eukaryote</span>
+        <span class="lang-bn hidden" id="ctLabelBn">প্রাণী কোষ — ইউক্যারিওট</span>
+      </div>
+
+      <!-- Legend -->
+      <div id="legend"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// ORGANELLE DATA
+// ═══════════════════════════════════════════════════════════════
+const ORGANELLES = {
+  cell_membrane: {
+    nameEn: 'Cell Membrane', nameBn: 'কোষঝিল্লি',
+    color: '#68d391', type: 'both',
+    descEn: 'A thin, flexible bilayer of phospholipids that surrounds every cell. It is selectively permeable — letting some substances pass freely while blocking others, maintaining the cell\'s internal environment.',
+    descBn: 'ফসফোলিপিডের একটি পাতলা, নমনীয় দ্বিস্তর যা প্রতিটি কোষকে ঘিরে থাকে। এটি নির্বাচিতভাবে পারগম্য — কিছু পদার্থকে মুক্তভাবে যেতে দেয় এবং অন্যগুলো আটকায়।',
+    facts: [['Thickness','~7–10 nm'],['Main lipid','Phospholipid'],['Also contains','Proteins, cholesterol'],['Model','Fluid mosaic']]
+  },
+  nucleus: {
+    nameEn: 'Nucleus', nameBn: 'নিউক্লিয়াস',
+    color: '#8090e0', type: 'both',
+    descEn: 'The control centre of the cell, enclosed by a double-layered nuclear envelope studded with pores. It houses the cell\'s DNA, directing all cellular activities and protein synthesis.',
+    descBn: 'কোষের নিয়ন্ত্রণ কেন্দ্র, ছিদ্রযুক্ত দ্বিস্তর নিউক্লিয়ার আবরণ দ্বারা আবৃত। এতে কোষের DNA থাকে এবং এটি সমস্ত কোষীয় কার্যকলাপ ও প্রোটিন সংশ্লেষণ পরিচালনা করে।',
+    facts: [['Diameter','5–10 µm'],['Envelope','Double membrane'],['Pores','~3000–4000 per nucleus'],['Contains','DNA, histones, RNA']]
+  },
+  nucleolus: {
+    nameEn: 'Nucleolus', nameBn: 'নিউক্লিওলাস',
+    color: '#7080ee', type: 'both',
+    descEn: 'A dense region inside the nucleus where ribosomal RNA (rRNA) is transcribed and ribosomes begin assembly. It disappears during cell division and reforms afterwards.',
+    descBn: 'নিউক্লিয়াসের ভেতরে একটি ঘন অঞ্চল যেখানে রাইবোসোমাল RNA (rRNA) লেখা হয় এবং রাইবোসোম তৈরি শুরু হয়। কোষ বিভাজনের সময় এটি অদৃশ্য হয়ে যায়।',
+    facts: [['Function','rRNA synthesis'],['Per cell','Usually 1–4'],['Disappears during','Mitosis/Meiosis'],['Product','Ribosome subunits']]
+  },
+  mitochondria: {
+    nameEn: 'Mitochondria', nameBn: 'মাইটোকন্ড্রিয়া',
+    color: '#e06020', type: 'both',
+    descEn: 'The powerhouse of the cell. Generates ATP through cellular respiration (Krebs cycle + oxidative phosphorylation). Has its own DNA — evidence it was once a free-living bacterium absorbed by a larger cell (endosymbiotic theory).',
+    descBn: 'কোষের শক্তিঘর। কোষীয় শ্বসনের মাধ্যমে ATP তৈরি করে। নিজস্ব DNA আছে — প্রমাণ যে এটি একবার স্বাধীনভাবে বসবাসকারী ব্যাকটেরিয়া ছিল (এন্ডোসিম্বায়োটিক তত্ত্ব)।',
+    facts: [['Shape','Rod-shaped, 1–10 µm'],['Inner membrane','Folded → cristae'],['Product','ATP (36–38 per glucose)'],['Own genome','~16,500 bp (human)']]
+  },
+  rer: {
+    nameEn: 'Rough Endoplasmic Reticulum', nameBn: 'রুক্ষ অন্তঃপ্লাজমীয় জালিকা',
+    color: '#c8882c', type: 'both',
+    descEn: 'A network of membranes studded with ribosomes (giving it a "rough" appearance). Its main role is synthesising and processing proteins destined for secretion or membrane use.',
+    descBn: 'রাইবোসোম-আচ্ছাদিত ঝিল্লির একটি জাল (যা এটিকে "রুক্ষ" চেহারা দেয়)। এর প্রধান কাজ হলো ক্ষরণ বা ঝিল্লি ব্যবহারের জন্য প্রোটিন সংশ্লেষণ ও প্রক্রিয়াকরণ।',
+    facts: [['Surface','Ribosome-studded'],['Function','Protein synthesis'],['Connected to','Outer nuclear membrane'],['Product','Secretory proteins']]
+  },
+  ser: {
+    nameEn: 'Smooth Endoplasmic Reticulum', nameBn: 'মসৃণ অন্তঃপ্লাজমীয় জালিকা',
+    color: '#dba030', type: 'animal',
+    descEn: 'Lacks ribosomes, giving it a smooth surface. Involved in lipid and steroid synthesis, drug detoxification, and calcium ion storage. Abundant in liver and muscle cells.',
+    descBn: 'রাইবোসোম নেই, তাই মসৃণ। লিপিড ও স্টেরয়েড সংশ্লেষণ, ওষুধ বিষমুক্তকরণ এবং ক্যালসিয়াম আয়ন সঞ্চয়ে জড়িত।',
+    facts: [['No ribosomes','Yes — hence smooth'],['Specialises in','Lipids, steroids'],['Found in','Liver, muscle, gonads'],['Also stores','Ca²⁺ ions']]
+  },
+  ribosome: {
+    nameEn: 'Ribosome', nameBn: 'রাইবোসোম',
+    color: '#e8b840', type: 'both',
+    descEn: 'Tiny molecular machines made of rRNA and proteins. They translate mRNA sequences into polypeptide chains (proteins). Found free in cytoplasm or attached to rough ER.',
+    descBn: 'rRNA ও প্রোটিন দিয়ে তৈরি ক্ষুদ্র আণবিক যন্ত্র। এরা mRNA অনুক্রম থেকে পলিপেপটাইড শৃঙ্খল (প্রোটিন) তৈরি করে।',
+    facts: [['Eukaryote type','80S (60S + 40S)'],['Prokaryote type','70S (50S + 30S)'],['Made of','rRNA + ~80 proteins'],['Location','Cytoplasm / RER']]
+  },
+  golgi: {
+    nameEn: 'Golgi Apparatus', nameBn: 'গলজি বডি',
+    color: '#30a8d8', type: 'both',
+    descEn: 'The "post office" of the cell — receives proteins from the ER, modifies them (glycosylation, phosphorylation), packages them into vesicles, and dispatches them to their final destinations.',
+    descBn: 'কোষের "ডাকঘর" — ER থেকে প্রোটিন গ্রহণ করে, পরিবর্তন করে (গ্লাইকোসাইলেশন), ভেসিকেলে প্যাক করে এবং গন্তব্যে পাঠায়।',
+    facts: [['Stack name','Cisternae (4–8 layers)'],['Receives from','ER (cis face)'],['Sends to','Membrane/secretion (trans face)'],['Modifies','Sugars, phosphate groups']]
+  },
+  lysosome: {
+    nameEn: 'Lysosome', nameBn: 'লাইসোসোম',
+    color: '#e0305a', type: 'animal',
+    descEn: 'Membrane-bound sacs filled with ~60 hydrolytic enzymes. They digest old organelles (autophagy), ingested pathogens, and cellular waste. Their low pH (~4.8) activates the enzymes.',
+    descBn: 'প্রায় ৬০টি হাইড্রোলাইটিক এনজাইম-পূর্ণ ঝিল্লি-আবদ্ধ থলি। এরা পুরনো অঙ্গাণু (অটোফেজি), গৃহীত জীবাণু এবং কোষীয় বর্জ্য হজম করে।',
+    facts: [['pH inside','~4.8 (very acidic)'],['Enzymes','~60 hydrolases'],['Process','Autophagy, phagocytosis'],['Absence in','Plant cells (usually)']]
+  },
+  centriole: {
+    nameEn: 'Centriole', nameBn: 'সেন্ট্রিওল',
+    color: '#90b4dc', type: 'animal',
+    descEn: 'A cylinder of 9 triplet microtubules. Two centrioles form the centrosome, which organises the mitotic spindle during cell division, ensuring chromosomes are pulled apart correctly.',
+    descBn: '৯টি ট্রিপলেট মাইক্রোটিউবুলের একটি সিলিন্ডার। দুটি সেন্ট্রিওল মিলে সেন্ট্রোসোম গঠন করে, যা কোষ বিভাজনের সময় মাইটোটিক স্পিন্ডল সংগঠিত করে।',
+    facts: [['Structure','9 triplet microtubules'],['Pair name','Centrosome'],['Role','Mitotic spindle formation'],['Absent in','Most plant cells']]
+  },
+  vacuole_small: {
+    nameEn: 'Vacuole (small)', nameBn: 'ভ্যাকুওল (ক্ষুদ্র)',
+    color: '#40a0c8', type: 'animal',
+    descEn: 'Small, temporary fluid-filled sacs in animal cells. They store nutrients, transport materials, or help remove waste. Unlike plant cells, animal cells have many small vacuoles rather than one large one.',
+    descBn: 'প্রাণী কোষে ছোট, অস্থায়ী তরল-ভরা থলি। এরা পুষ্টি সংরক্ষণ, পদার্থ পরিবহন বা বর্জ্য অপসারণে সাহায্য করে।',
+    facts: [['Size','Small, temporary'],['Number','Many per cell'],['Contents','Water, ions, nutrients'],['Compare to','Plant: one giant vacuole']]
+  },
+  vacuole_large: {
+    nameEn: 'Central Vacuole', nameBn: 'কেন্দ্রীয় ভ্যাকুওল',
+    color: '#40a8d8', type: 'plant',
+    descEn: 'A massive organelle that can occupy up to 90% of a plant cell\'s volume. Filled with cell sap, it maintains turgor pressure (keeping the plant rigid), stores pigments, waste products, and helps the cell grow by absorbing water.',
+    descBn: 'একটি বিশাল অঙ্গাণু যা একটি উদ্ভিদ কোষের ৯০% পর্যন্ত জায়গা নিতে পারে। কোষ রসে পূর্ণ, এটি স্ফীতি চাপ বজায় রাখে এবং রঙ্গক, বর্জ্য পদার্থ সঞ্চয় করে।',
+    facts: [['Volume','Up to 90% of cell',''],['Membrane','Tonoplast'],['Contents','Cell sap, pigments, waste'],['Pressure','Turgor pressure → rigidity']]
+  },
+  chloroplast: {
+    nameEn: 'Chloroplast', nameBn: 'ক্লোরোপ্লাস্ট',
+    color: '#40c840', type: 'plant',
+    descEn: 'The site of photosynthesis. Contains chlorophyll (the green pigment) in stacked membrane discs called thylakoids (grana). The light reactions occur in thylakoids; the Calvin cycle occurs in the stroma.',
+    descBn: 'সালোকসংশ্লেষণের স্থান। থাইলাকয়েড (গ্রানা) নামক স্তূপিত ঝিল্লি চাকতিতে ক্লোরোফিল ধারণ করে। আলোক বিক্রিয়া থাইলাকয়েডে এবং ক্যালভিন চক্র স্ট্রোমায় ঘটে।',
+    facts: [['Pigment','Chlorophyll a & b'],['Light reactions','Thylakoid membrane'],['Dark reactions','Stroma (Calvin cycle)'],['Own DNA','Yes — endosymbiont origin']]
+  },
+  cell_wall: {
+    nameEn: 'Cell Wall', nameBn: 'কোষ প্রাচীর',
+    color: '#a0c840', type: 'plant',
+    descEn: 'A rigid outer layer made mainly of cellulose fibres, providing structural support and protection. It prevents the cell from bursting under turgor pressure. It is fully permeable — unlike the membrane.',
+    descBn: 'প্রধানত সেলুলোজ তন্তু দিয়ে তৈরি একটি কঠোর বাইরের স্তর, কাঠামোগত সহায়তা ও সুরক্ষা প্রদান করে। স্ফীতি চাপের অধীনে কোষকে ফাটতে বাধা দেয়।',
+    facts: [['Main component','Cellulose (plant)'],['Fully permeable','Yes — unlike membrane'],['Fungi wall','Chitin'],['Bacteria wall','Peptidoglycan']]
+  },
+  plasmodesmata: {
+    nameEn: 'Plasmodesmata', nameBn: 'প্লাজমোডেসমাটা',
+    color: '#a0c840', type: 'plant',
+    descEn: 'Narrow channels through the cell wall that connect adjacent plant cells. They allow direct communication and transport of small molecules (water, sugars, signals) between cells, forming a symplast network.',
+    descBn: 'কোষ প্রাচীরের মধ্য দিয়ে সংকীর্ণ চ্যানেল যা পার্শ্ববর্তী উদ্ভিদ কোষগুলিকে সংযুক্ত করে। এরা কোষের মধ্যে সরাসরি যোগাযোগ ও ছোট অণু পরিবহনের অনুমতি দেয়।',
+    facts: [['Diameter','~30–60 nm'],['Function','Cell-to-cell communication'],['Transport','Water, sugars, signals'],['Network name','Symplast']]
+  },
+  cytoskeleton: {
+    nameEn: 'Cytoskeleton', nameBn: 'সাইটোস্কেলেটন',
+    color: '#a0d0c0', type: 'both',
+    descEn: 'A dynamic scaffolding of three protein filament types: microfilaments (actin), intermediate filaments, and microtubules. It maintains cell shape, enables movement, and serves as tracks for organelle transport.',
+    descBn: 'তিন ধরনের প্রোটিন ফিলামেন্টের একটি গতিশীল কাঠামো: মাইক্রোফিলামেন্ট (অ্যাক্টিন), মধ্যবর্তী ফিলামেন্ট এবং মাইক্রোটিউবুল। এটি কোষের আকৃতি বজায় রাখে।',
+    facts: [['Microfilaments','Actin, 7 nm'],['Intermediate','Keratin etc., 10 nm'],['Microtubules','Tubulin, 25 nm'],['Motor proteins','Kinesin, dynein']]
+  },
+  peroxisome: {
+    nameEn: 'Peroxisome', nameBn: 'পেরোক্সিসোম',
+    color: '#60c8b0', type: 'both',
+    descEn: 'Small organelles that break down fatty acids and destroy toxic hydrogen peroxide (H₂O₂) using the enzyme catalase. Abundant in liver and kidney cells where detoxification is critical.',
+    descBn: 'ক্ষুদ্র অঙ্গাণু যা ফ্যাটি অ্যাসিড ভাঙে এবং ক্যাটালেজ এনজাইম ব্যবহার করে বিষাক্ত হাইড্রোজেন পারক্সাইড (H₂O₂) ধ্বংস করে।',
+    facts: [['Key enzyme','Catalase'],['Breaks down','H₂O₂, fatty acids'],['Found in','Liver, kidney'],['Similar to','Glyoxysome (plants)']]
+  },
+  amyloplast: {
+    nameEn: 'Amyloplast', nameBn: 'অ্যামাইলোপ্লাস্ট',
+    color: '#d0c040', type: 'plant',
+    descEn: 'A type of plastid (non-green) specialised for storing starch granules. Found in storage organs like potato tubers and seeds. Also plays a role in gravitropism — plant roots sensing gravity.',
+    descBn: 'এক ধরনের প্লাস্টিড (সবুজ নয়) যা স্টার্চ গ্রানুল সংরক্ষণে বিশেষজ্ঞ। আলু কন্দ ও বীজের মতো সঞ্চয় অঙ্গে পাওয়া যায়। মাধ্যাকর্ষণ অনুধাবনেও ভূমিকা রাখে।',
+    facts: [['Type','Non-photosynthetic plastid'],['Stores','Starch granules'],['Found in','Potatoes, seeds, roots'],['Also involved in','Gravitropism']]
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let cellType = 'animal'; // 'animal' | 'plant'
+let lang = 'en';
+let activeOrg = null;
+
+// ═══════════════════════════════════════════════════════════════
+// LANGUAGE
+// ═══════════════════════════════════════════════════════════════
+function toggleLang() {
+  lang = lang === 'en' ? 'bn' : 'en';
+  document.querySelectorAll('.lang-en').forEach(el => el.classList.toggle('hidden', lang !== 'en'));
+  document.querySelectorAll('.lang-bn').forEach(el => el.classList.toggle('hidden', lang !== 'bn'));
+  document.body.classList.toggle('bangla', lang === 'bn');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CELL TOGGLE
+// ═══════════════════════════════════════════════════════════════
+function toggleCell() {
+  cellType = cellType === 'animal' ? 'plant' : 'animal';
+  document.getElementById('animalCell').style.display = cellType === 'animal' ? '' : 'none';
+  document.getElementById('plantCell').style.display  = cellType === 'plant'  ? '' : 'none';
+
+  const lbl = document.getElementById('toggleLabel');
+  if (cellType === 'animal') {
+    lbl.textContent = '🌿 Switch to Plant';
+    document.getElementById('cellToggle').classList.remove('animal');
+    document.getElementById('cellTypeName').textContent = lang === 'en' ? 'Animal Cell' : 'প্রাণী কোষ';
+    document.getElementById('ctLabelEn').textContent = 'Animal Cell — Eukaryote';
+    document.getElementById('ctLabelBn').textContent = 'প্রাণী কোষ — ইউক্যারিওট';
+  } else {
+    lbl.textContent = '🐾 Switch to Animal';
+    document.getElementById('cellToggle').classList.add('animal');
+    document.getElementById('cellTypeName').textContent = lang === 'en' ? 'Plant Cell' : 'উদ্ভিদ কোষ';
+    document.getElementById('ctLabelEn').textContent = 'Plant Cell — Eukaryote';
+    document.getElementById('ctLabelBn').textContent = 'উদ্ভিদ কোষ — ইউক্যারিওট';
+  }
+
+  showIdle();
+  buildList();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ORGANELLE LIST
+// ═══════════════════════════════════════════════════════════════
+function buildList() {
+  const list = document.getElementById('orgList');
+  list.innerHTML = '';
+  Object.entries(ORGANELLES).forEach(([key, org]) => {
+    if (org.type !== 'both' && org.type !== cellType) return;
+    const item = document.createElement('div');
+    item.className = 'org-item';
+    item.innerHTML = `
+      <div class="org-dot" style="background:${org.color};box-shadow:0 0 5px ${org.color}55"></div>
+      <div>
+        <div class="org-name lang-en ${lang==='bn'?'hidden':''}">${org.nameEn}</div>
+        <div class="org-name-bn lang-bn ${lang==='en'?'hidden':''}">${org.nameBn}</div>
+      </div>`;
+    item.onclick = () => selectOrg(key);
+    list.appendChild(item);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SHOW IDLE / SELECT
+// ═══════════════════════════════════════════════════════════════
+function showIdle() {
+  document.getElementById('idleList').style.display = '';
+  document.getElementById('infoCard').classList.remove('show');
+  // Remove active from all organelles
+  document.querySelectorAll('.organelle').forEach(el => el.classList.remove('active'));
+  activeOrg = null;
+}
+
+function selectOrg(key) {
+  const org = ORGANELLES[key];
+  if (!org) return;
+  activeOrg = key;
+
+  // Highlight SVG element
+  document.querySelectorAll('.organelle').forEach(el => el.classList.remove('active'));
+  // Find by data-key
+  document.querySelectorAll(`[data-key="${key}"]`).forEach(el => el.classList.add('active'));
+
+  // Fill card
+  document.getElementById('infoBadge').textContent = org.type === 'plant' ? '🌿 Plant only' : org.type === 'animal' ? '🐾 Animal only' : '🔬 Both cells';
+  document.getElementById('infoBadge').style.cssText = `color:${org.color};border-color:${org.color}55;background:${org.color}11`;
+  document.getElementById('infoNameEn').textContent = org.nameEn;
+  document.getElementById('infoNameBn').textContent = org.nameBn;
+  document.getElementById('infoDescEn').textContent = org.descEn;
+  document.getElementById('infoDescBn').textContent = org.descBn;
+
+  // Facts table
+  const facts = document.getElementById('infoFacts');
+  facts.innerHTML = org.facts.map(([k,v]) =>
+    `<div class="fact-row"><span>${k}</span><span class="fact-val">${v}</span></div>`
+  ).join('');
+
+  document.getElementById('idleList').style.display = 'none';
+  document.getElementById('infoCard').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SVG HOVER TOOLTIP
+// ═══════════════════════════════════════════════════════════════
+const tooltip = document.getElementById('svgTooltip');
+document.getElementById('cellArea').addEventListener('mousemove', e => {
+  tooltip.style.left = (e.offsetX + 14) + 'px';
+  tooltip.style.top  = (e.offsetY - 10) + 'px';
+});
+
+document.querySelectorAll('.organelle').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    const key = el.dataset.key;
+    const org = ORGANELLES[key];
+    if (!org) return;
+    tooltip.textContent = lang === 'en' ? org.nameEn : org.nameBn;
+    tooltip.style.opacity = '1';
+  });
+  el.addEventListener('mouseleave', () => { tooltip.style.opacity = '0'; });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// BUILD LEGEND
+// ═══════════════════════════════════════════════════════════════
+function buildLegend() {
+  const leg = document.getElementById('legend');
+  const items = [
+    { color: '#8090e0', label: 'Nucleus', labelBn: 'নিউক্লিয়াস' },
+    { color: '#e06020', label: 'Mitochondria', labelBn: 'মাইটোকন্ড্রিয়া' },
+    { color: '#30a8d8', label: 'Golgi', labelBn: 'গলজি' },
+    { color: '#c8882c', label: 'ER', labelBn: 'অন্তঃজালিকা' },
+    { color: '#40c840', label: 'Chloroplast', labelBn: 'ক্লোরোপ্লাস্ট' },
+    { color: '#40a8d8', label: 'Vacuole', labelBn: 'ভ্যাকুওল' },
+    { color: '#e0305a', label: 'Lysosome', labelBn: 'লাইসোসোম' },
+  ];
+  leg.innerHTML = items.map(i =>
+    `<div class="leg-item">
+      <div class="leg-dot" style="background:${i.color}"></div>
+      <span class="lang-en ${lang==='bn'?'hidden':''}">${i.label}</span>
+      <span class="lang-bn ${lang==='en'?'hidden':''}">${i.labelBn}</span>
+    </div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+buildList();
+buildLegend();
+</script>
+</body>
+</html>

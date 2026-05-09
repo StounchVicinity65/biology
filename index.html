@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧬 BioSim Lab | জীববিজ্ঞান সিমুলেশন</title>
+  <style>
+    :root {
+      --accent: #4ade80;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', 'Noto Serif Bengali', sans-serif;
+      color: #d1f8e0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .bg-gif {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('https://makeagif.com/gif/biology-kqMSDr') center/cover no-repeat;
+      filter: brightness(0.45) contrast(1.1);
+      z-index: -2;
+    }
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(rgba(1,12,5,0.88), rgba(2,26,10,0.94));
+      z-index: -1;
+    }
+
+    header {
+      text-align: center;
+      padding: 3rem 1rem 2rem;
+      position: relative;
+    }
+    h1 {
+      font-size: 2.8rem;
+      color: var(--accent);
+      text-shadow: 0 0 25px rgba(74,222,128,0.6);
+      margin: 0;
+    }
+    .subtitle { 
+      font-size: 1.25rem; 
+      color: #86efac; 
+      margin-top: 8px; 
+    }
+
+    /* Top Buttons */
+    .top-buttons {
+      position: absolute;
+      top: 20px;
+      display: flex;
+      gap: 12px;
+      z-index: 100;
+    }
+    .left-btn {
+      left: 20px;
+    }
+    .right-btn {
+      right: 20px;
+    }
+    .top-btn {
+      padding: 10px 18px;
+      background: rgba(74,222,128,0.2);
+      color: white;
+      border: 1px solid var(--accent);
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    .top-btn:hover {
+      background: rgba(74,222,128,0.45);
+      transform: scale(1.05);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: rgba(2, 26, 10, 0.92);
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(74,222,128,0.35);
+      transition: all 0.4s;
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: translateY(-15px);
+      box-shadow: 0 25px 50px rgba(74,222,128,0.3);
+    }
+    .card-header {
+      height: 190px;
+      background: rgba(1,12,5,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4.2rem;
+      border-bottom: 2px solid var(--accent);
+    }
+    .card-body { padding: 20px; }
+    .card-title { font-size: 1.4rem; color: #4ade80; margin: 0 0 8px 0; }
+    .card-desc { line-height: 1.6; color: #a3f7c2; }
+
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: #011004;
+      border: none;
+      border-radius: 50px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover { background: #22c55e; }
+  </style>
+</head>
+<body>
+  <div class="bg-gif"></div>
+  <div class="overlay"></div>
+
+  <header>
+    <!-- Portal Button - Top Left -->
+    <button class="top-btn left-btn" onclick="goToPortal()">🌌 Portal</button>
+    
+    <!-- Translation Button - Top Right -->
+    <button class="top-btn right-btn" onclick="toggleLanguage()">🌐 বাংলা / English</button>
+
+    <h1 id="mainTitle">🧬 BioSim Lab</h1>
+    <p id="mainSubtitle" class="subtitle">জীববিজ্ঞান ইন্টারেক্টিভ সিমুলেশন ল্যাব</p>
+  </header>
+
+  <div class="container">
+    <div class="grid">
+
+      <div class="card" onclick="openSim('dna')">
+        <div class="card-header">🧬</div>
+        <div class="card-body">
+          <h3 class="card-title" data-en="DNA Double Helix" data-bn="ডিএনএ ডাবল হেলিক্স">DNA Double Helix</h3>
+          <p class="card-desc" data-en="Interactive model with Purine-Pyrimidine pairing and Hydrogen bonds" 
+             data-bn="পিউরিন-পিরিমিডিন জোড় ও হাইড্রোজেন বন্ধন সহ ইন্টারেক্টিভ মডেল">Interactive model with Purine-Pyrimidine pairing and Hydrogen bonds</p>
+          <button data-en="Open Simulation" data-bn="সিমুলেশন খুলুন">Open Simulation</button>
+        </div>
+      </div>
+
+      <div class="card" onclick="openSim('neuron')">
+        <div class="card-header">⚡</div>
+        <div class="card-body">
+          <h3 class="card-title" data-en="Neuron Signal Propagation" data-bn="নিউরন সিগন্যাল প্রচার">Neuron Signal Propagation</h3>
+          <p class="card-desc" data-en="Action potential traveling through neuron" 
+             data-bn="নিউরনে অ্যাকশন পটেনশিয়ালের যাত্রা">Action potential traveling through neuron</p>
+          <button data-en="Open Simulation" data-bn="সিমুলেশন খুলুন">Open Simulation</button>
+        </div>
+      </div>
+
+      <div class="card" onclick="openSim('mitosis')">
+        <div class="card-header">🔬</div>
+        <div class="card-body">
+          <h3 class="card-title" data-en="Cell Division (Mitosis)" data-bn="কোষ বিভাজন (মাইটোসিস)">Cell Division (Mitosis)</h3>
+          <p class="card-desc" data-en="Animated phases of Mitosis" 
+             data-bn="মাইটোসিসের অ্যানিমেটেড পর্যায়সমূহ">Animated phases of Mitosis</p>
+          <button data-en="Open Simulation" data-bn="সিমুলেশন খুলুন">Open Simulation</button>
+        </div>
+      </div>
+
+      <div class="card" onclick="openSim('heart')">
+        <div class="card-header">❤️</div>
+        <div class="card-body">
+          <h3 class="card-title" data-en="Blood Circulation in Heart" data-bn="হৃদপিণ্ডে রক্ত সঞ্চালন">Blood Circulation in Heart</h3>
+          <p class="card-desc" data-en="Double circulation model" 
+             data-bn="ডাবল সঞ্চালন মডেল">Double circulation model</p>
+          <button data-en="Open Simulation" data-bn="সিমুলেশন খুলুন">Open Simulation</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let isBangla = false;
+
+    function toggleLanguage() {
+      isBangla = !isBangla;
+      
+      document.querySelectorAll('[data-en]').forEach(el => {
+        el.textContent = isBangla ? el.getAttribute('data-bn') : el.getAttribute('data-en');
+      });
+
+      document.getElementById('mainTitle').textContent = isBangla ? "🧬 বায়োসিম ল্যাব" : "🧬 BioSim Lab";
+      document.getElementById('mainSubtitle').textContent = isBangla ? "জীববিজ্ঞান ইন্টারেক্টিভ সিমুলেশন ল্যাব" : "Interactive Biology Simulation Lab";
+    }
+
+    function openSim(sim) {
+      const urls = {
+        dna: 'dna.html',
+        neuron: 'neuron.html',
+        mitosis: 'mitosis.html',
+        heart: 'heart-circulation.html'
+      };
+      if (urls[sim]) window.open(urls[sim], '_blank');
+    }
+
+    function goToPortal() {
+      window.open('https://stounchvicinity65.github.io/portal/', '_blank');
+    }
+  </script>
+</body>
+</html>

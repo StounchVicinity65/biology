@@ -3,288 +3,351 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🧬 BioSim Lab | জীববিজ্ঞান সিমুলেশন</title>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <title>BIOSIM</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;700&family=Share+Tech+Mono&family=Bebas+Neue&family=Exo+2:ital,wght@0,300;0,400;0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --accent: #4ade80;
-      --accent-glow: rgba(74, 222, 128, 0.4);
-      --bg-dark: #010c05;
+    :root{
+      --green:#4ade80;
+      --green-d:#22c55e;
+      --bg:#010a04;
+      --accent-glow:rgba(74,222,128,0.45);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{
+      font-family:'Exo 2',sans-serif;
+      background:#010a04;
+      color:#d1f8e0;
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+    body.bangla{font-family:'Noto Serif Bengali',sans-serif;}
+
+    /* BACKGROUND - More Noticeable */
+    .bg-gif{
+      position:fixed;
+      inset:0;
+      background:url('https://www.thisiscolossal.com/wp-content/uploads/2025/09/nikon-4.gif') center/cover no-repeat;
+      filter:brightness(0.45) contrast(1.25) saturate(1.1);
+      z-index:-3;
+      opacity:0.92;
+    }
+    .bg-overlay{
+      position:fixed;
+      inset:0;
+      background:linear-gradient(155deg,#010a04 0%,#031a08 50%,#020c05 100%);
+      z-index:-2;
     }
 
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Share Tech Mono', 'Segoe UI', sans-serif;
-      color: #d1f8e0;
-      min-height: 100vh;
-      overflow-x: hidden;
-      background-color: var(--bg-dark);
+    /* Biology Wing Animation */
+    .bioWing{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index:-1;
+      opacity:0.22;
+    }
+    .wingSlash{
+      position:absolute;
+      top:0;
+      left:-160%;
+      width:100%;
+      height:100%;
+      background:linear-gradient(135deg,transparent 28%,rgba(74,222,128,.28) 50%,transparent 72%);
+      animation:wingSweep 6.8s ease-in-out infinite;
+    }
+    .wingSlash2{animation-delay:3.4s!important;}
+    @keyframes wingSweep{
+      0%{left:-160%;opacity:0;}
+      15%{opacity:0.75;}
+      80%{opacity:0.35;}
+      100%{left:220%;opacity:0;}
     }
 
-    /* BACKGROUND LAYERS */
-    .bg-gif {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('https://www.thisiscolossal.com/wp-content/uploads/2025/09/nikon-4.gif') center/cover no-repeat;
-      filter: brightness(0.3) contrast(1.2);
-      z-index: -2;
+    /* HEADER */
+    header{
+      text-align:center;
+      padding:5rem 1rem 3.5rem;
+      position:relative;
+      z-index:10;
     }
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(rgba(1,12,5,0.85), rgba(2,26,10,0.95));
-      z-index: -1;
+    .corner-btn{
+      position:absolute;
+      top:25px;
+      padding:9px 22px;
+      background:rgba(2,18,8,0.92);
+      color:var(--green);
+      border:1px solid rgba(74,222,128,0.45);
+      border-radius:4px;
+      cursor:pointer;
+      font-family:'Share Tech Mono',monospace;
+      font-size:0.8rem;
+      font-weight:700;
+      letter-spacing:1.2px;
+      transition:all .3s;
+      text-transform:uppercase;
+    }
+    .corner-btn:hover{
+      background:var(--green);
+      color:#000;
+      box-shadow:0 0 22px var(--accent-glow);
+      transform:translateY(-2px);
+    }
+    .left-corner{left:28px;}
+    .right-corner{right:28px;}
+
+    h1{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:4.2rem;
+      color:var(--green);
+      text-shadow:0 0 35px rgba(74,222,128,.7), 0 0 70px rgba(34,197,94,.25);
+      letter-spacing:4px;
+      margin-bottom:6px;
+    }
+    .subtitle{
+      font-family:'Share Tech Mono',monospace;
+      font-size:1.1rem;
+      color:#86efac;
+      opacity:0.9;
+      letter-spacing:3px;
     }
 
-    /* CYBER SCAN LINE EFFECT */
-    body::after {
-      content: "";
-      position: fixed;
-      top: -100%; left: 0;
-      width: 100%; height: 100%;
-      background: linear-gradient(transparent 0%, var(--accent-glow) 50%, transparent 100%);
-      animation: scan 10s linear infinite;
-      pointer-events: none;
-      z-index: 5;
-      opacity: 0.1;
+    /* GRID */
+    .container{
+      max-width:1180px;
+      margin:0 auto;
+      padding:20px;
+      position:relative;
+      z-index:5;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+      gap:28px;
     }
 
-    @keyframes scan {
-      0% { top: -100%; }
-      100% { top: 100%; }
+    /* CARDS */
+    .card{
+      background:linear-gradient(155deg,#010a04 0%,#031a08 55%,#020c05 100%);
+      border:1px solid rgba(74,222,128,.25);
+      border-radius:8px;
+      overflow:hidden;
+      transition:transform .42s cubic-bezier(.175,.885,.32,1.275), box-shadow .4s;
+      cursor:pointer;
+      position:relative;
+    }
+    .card:hover{
+      transform:translateY(-14px);
+      box-shadow:0 30px 60px rgba(0,0,0,.8), 0 0 50px rgba(74,222,128,.3);
+      border-color:var(--green);
     }
 
-    /* HEADER & CORNER BUTTONS */
-    header {
-      text-align: center;
-      padding: 5rem 1rem 3rem;
-      position: relative;
-    }
-    .corner-btn {
-      position: absolute;
-      top: 20px;
-      padding: 8px 18px;
-      background: rgba(10, 30, 15, 0.9);
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      border-radius: 4px; /* Boxy tech look */
-      cursor: pointer;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.8rem;
-      transition: all 0.3s;
-      z-index: 100;
-      text-transform: uppercase;
-    }
-    .corner-btn:hover {
-      background: var(--accent);
-      color: #000;
-      box-shadow: 0 0 15px var(--accent);
-    }
-    .left-corner  { left: 20px; }
-    .right-corner { right: 20px; }
-
-    h1 {
-      font-size: 3.2rem;
-      color: var(--accent);
-      text-shadow: 0 0 20px var(--accent-glow);
-      margin: 0;
-      letter-spacing: 2px;
-    }
-    .subtitle { 
-      font-size: 1.1rem; 
-      color: #86efac; 
-      margin-top: 10px; 
-      min-height: 1.5em; /* Stabilize language toggle */
-      opacity: 0.8;
+    .card-header{
+      height:175px;
+      background:rgba(0,0,0,0.45);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:5.5rem;
+      position:relative;
+      overflow:hidden;
+      border-bottom:1px solid rgba(74,222,128,.25);
     }
 
-    /* THE GRID & CARDS */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
+    .card-body{
+      padding:24px;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 25px;
+    .card-title{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:1.95rem;
+      color:var(--green);
+      margin-bottom:14px;
+      letter-spacing:1.5px;
     }
-    .card {
-      background: rgba(2, 26, 10, 0.8);
-      border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid rgba(74,222,128,0.2);
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      cursor: pointer;
-      position: relative;
+    .card-desc{
+      font-size:0.94rem;
+      line-height:1.65;
+      color:#a3f7c2;
+      opacity:0.9;
+      min-height:68px;
     }
-    .card:hover {
-      transform: translateY(-10px) scale(1.02);
-      border-color: var(--accent);
-      box-shadow: 0 10px 40px rgba(0, 255, 100, 0.2);
+    .open-btn{
+      margin-top:20px;
+      width:100%;
+      padding:13px;
+      background:transparent;
+      color:var(--green);
+      border:1px solid var(--green);
+      font-family:'Share Tech Mono',monospace;
+      font-weight:700;
+      letter-spacing:1.8px;
+      cursor:pointer;
+      transition:all .3s;
+      text-transform:uppercase;
+      font-size:0.85rem;
     }
-    .card-header {
-      height: 160px;
-      background: rgba(0, 0, 0, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 4rem;
-      border-bottom: 1px solid rgba(74,222,128,0.2);
-    }
-    .card-body { padding: 20px; }
-    .card-title { font-size: 1.3rem; color: var(--accent); margin: 0 0 10px 0; text-transform: uppercase;}
-    .card-desc { font-size: 0.9rem; line-height: 1.5; color: #a3f7c2; height: 3em; }
-
-    .card-meta {
-      font-size: 0.6rem;
-      color: var(--accent);
-      opacity: 0.4;
-      margin-top: 20px;
-      border-top: 1px solid rgba(74,222,128,0.1);
-      padding-top: 10px;
-      display: flex;
-      justify-content: space-between;
+    .card:hover .open-btn{
+      background:var(--green);
+      color:#000;
+      box-shadow:0 0 18px var(--accent-glow);
     }
 
-    .open-btn {
-      margin-top: 15px;
-      width: 100%;
-      padding: 10px;
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      font-family: 'Share Tech Mono', monospace;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
+    /* Cell Rings */
+    .cell-rings{
+      position:absolute;
+      top:18px;
+      right:18px;
+      width:85px;
+      height:85px;
+      pointer-events:none;
+      opacity:0.3;
     }
-    .card:hover .open-btn {
-      background: var(--accent);
-      color: #000;
+    .cRing{
+      position:absolute;
+      border-radius:50%;
+      border:1.5px solid rgba(74,222,128,.55);
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      animation:cRingPulse 4.2s ease-out infinite;
+    }
+    @keyframes cRingPulse{
+      0%{width:24px;height:24px;opacity:0.9;}
+      100%{width:125px;height:125px;opacity:0;}
+    }
+
+    /* Vines */
+    .vineWrap{
+      position:absolute;
+      bottom:0;
+      left:0;
+      right:0;
+      height:55px;
+      pointer-events:none;
+      overflow:hidden;
+      opacity:0.35;
+    }
+    .vine{
+      position:absolute;
+      bottom:0;
+      width:2px;
+      background:linear-gradient(to top,rgba(74,222,128,.7),transparent);
+      animation:vineUp 5.2s ease-in-out infinite;
+    }
+    @keyframes vineUp{
+      0%,100%{height:0;opacity:0;}
+      45%{opacity:0.85;}
     }
   </style>
 </head>
 <body>
   <div class="bg-gif"></div>
-  <div class="overlay"></div>
+  <div class="bg-overlay"></div>
+  
+  <div class="bioWing">
+    <div class="wingSlash"></div>
+    <div class="wingSlash wingSlash2"></div>
+  </div>
 
   <header>
-    <button class="corner-btn left-corner" onclick="goToPortal()">🌌 Portal</button>
-    <button class="corner-btn right-corner" onclick="toggleLanguage()">🌐 Language</button>
-
-    <h1 id="mainTitle">🧬 BioSim Lab</h1>
-    <p id="mainSubtitle" class="subtitle">Interactive Biology Simulation Lab</p>
+    <button class="corner-btn left-corner" onclick="goToPortal()">🌌 PORTAL</button>
+    <button class="corner-btn right-corner" onclick="toggleLanguage()">🌐 বাংলা / EN</button>
+    <h1 id="mainTitle">BIOSIM</h1>
+    <p id="mainSubtitle" class="subtitle">BIOLOGY SIMULATION LAB</p>
   </header>
 
   <div class="container">
     <div class="grid">
-
+      <!-- DNA -->
       <div class="card" onclick="openSim('dna')">
         <div class="card-header">🧬</div>
         <div class="card-body">
-          <h3 class="card-title" data-en="DNA Double Helix" data-bn="ডিএনএ ডাবল হেলিক্স">DNA Double Helix</h3>
-          <p class="card-desc" data-en="Interactive model showing genetic sequencing and bonds." 
-             data-bn="জেনেটিক সিকোয়েন্সিং এবং বন্ধন প্রদর্শনকারী ইন্টারেক্টিভ মডেল।">Interactive model showing genetic sequencing and bonds.</p>
-          <button class="open-btn" data-en="INITIATE SCAN" data-bn="স্ক্যান শুরু করুন">INITIATE SCAN</button>
-          <div class="card-meta">
-            <span>DATA: GEN_SEC_01</span>
-            <span>TYPE: MOLECULAR</span>
+          <div class="cell-rings">
+            <div class="cRing" style="animation-delay:0s;"></div>
+            <div class="cRing" style="animation-delay:1.6s;"></div>
           </div>
+          <h3 class="card-title" data-en="DNA Double Helix" data-bn="ডিএনএ ডাবল হেলিক্স">DNA Double Helix</h3>
+          <p class="card-desc" data-en="Interactive model showing genetic sequencing and base pairing." data-bn="জেনেটিক সিকোয়েন্সিং এবং বেস পেয়ারিং প্রদর্শনকারী ইন্টারেক্টিভ মডেল।">Interactive model showing genetic sequencing and base pairing.</p>
+          <button class="open-btn" data-en="INITIATE SIMULATION" data-bn="সিমুলেশন শুরু করুন">INITIATE SIMULATION</button>
+        </div>
+        <div class="vineWrap">
+          <div class="vine" style="left:20%;animation-delay:0.3s;"></div>
+          <div class="vine" style="left:55%;animation-delay:1.2s;height:48px;"></div>
         </div>
       </div>
 
+      <!-- Neuron -->
       <div class="card" onclick="openSim('neuron')">
         <div class="card-header">⚡</div>
         <div class="card-body">
-          <h3 class="card-title" data-en="Neural Impulses" data-bn="স্নায়ু উদ্দীপনা">Neural Impulses</h3>
-          <p class="card-desc" data-en="Simulation of action potentials and reaction speeds." 
-             data-bn="অ্যাকশন পটেনশিয়াল এবং প্রতিক্রিয়া গতির সিমুলেশন।">Simulation of action potentials and reaction speeds.</p>
-          <button class="open-btn" data-en="INITIATE SCAN" data-bn="স্ক্যান শুরু করুন">INITIATE SCAN</button>
-          <div class="card-meta">
-            <span>DATA: NEURO_TRM</span>
-            <span>TYPE: BIOMETRIC</span>
+          <div class="cell-rings">
+            <div class="cRing" style="animation-delay:0.7s;"></div>
           </div>
+          <h3 class="card-title" data-en="Neural Impulses" data-bn="স্নায়ু উদ্দীপনা">Neural Impulses</h3>
+          <p class="card-desc" data-en="Simulation of action potentials and synaptic transmission." data-bn="অ্যাকশন পটেনশিয়াল এবং সিন্যাপটিক ট্রান্সমিশনের সিমুলেশন।">Simulation of action potentials and synaptic transmission.</p>
+          <button class="open-btn" data-en="INITIATE SIMULATION" data-bn="সিমুলেশন শুরু করুন">INITIATE SIMULATION</button>
+        </div>
+        <div class="vineWrap">
+          <div class="vine" style="left:35%;animation-delay:0.9s;"></div>
         </div>
       </div>
 
+      <!-- Mitosis -->
       <div class="card" onclick="openSim('mitosis')">
         <div class="card-header">🔬</div>
         <div class="card-body">
+          <div class="cell-rings">
+            <div class="cRing" style="animation-delay:0.4s;"></div>
+            <div class="cRing" style="animation-delay:2s;"></div>
+          </div>
           <h3 class="card-title" data-en="Cell Division" data-bn="কোষ বিভাজন">Cell Division</h3>
-          <p class="card-desc" data-en="Visualizing Mitosis and cellular replication phases." 
-             data-bn="মাইটোসিস এবং কোষের অনুলিপি পর্যায়গুলির দৃশ্যায়ন।">Visualizing Mitosis and cellular replication phases.</p>
-          <button class="open-btn" data-en="INITIATE SCAN" data-bn="স্ক্যান শুরু করুন">INITIATE SCAN</button>
-          <div class="card-meta">
-            <span>DATA: CELL_DIV_V2</span>
-            <span>TYPE: CYTOLOGY</span>
-          </div>
+          <p class="card-desc" data-en="Visualizing mitosis phases and cellular replication." data-bn="মাইটোসিস পর্যায় এবং কোষ বিভাজনের দৃশ্যায়ন।">Visualizing mitosis phases and cellular replication.</p>
+          <button class="open-btn" data-en="INITIATE SIMULATION" data-bn="সিমুলেশন শুরু করুন">INITIATE SIMULATION</button>
+        </div>
+        <div class="vineWrap">
+          <div class="vine" style="left:15%;animation-delay:1.5s;height:52px;"></div>
+          <div class="vine" style="left:65%;animation-delay:0.6s;"></div>
         </div>
       </div>
-
-      <div class="card" onclick="openSim('heart')">
-        <div class="card-header">❤️</div>
-        <div class="card-body">
-          <h3 class="card-title" data-en="Cardiac Pump" data-bn="হৃদযন্ত্রের পাম্প">Cardiac Pump</h3>
-          <p class="card-desc" data-en="Blood circulation and hemodynamic performance." 
-             data-bn="রক্ত সঞ্চালন এবং হেমোডাইনামিক কর্মক্ষমতা।">Blood circulation and hemodynamic performance.</p>
-          <button class="open-btn" data-en="INITIATE SCAN" data-bn="স্ক্যান শুরু করুন">INITIATE SCAN</button>
-          <div class="card-meta">
-            <span>DATA: HEART_CIR_04</span>
-            <span>TYPE: PHYSIOLOGY</span>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 
   <script>
-   let isBangla = false;
+    let isBangla = false;
 
     function toggleLanguage() {
       isBangla = !isBangla;
       document.querySelectorAll('[data-en]').forEach(el => {
         el.textContent = isBangla ? el.getAttribute('data-bn') : el.getAttribute('data-en');
       });
-
-      document.getElementById('mainTitle').textContent = isBangla ? "🧬 বায়োসিম ল্যাব" : "🧬 BioSim Lab";
-      document.getElementById('mainSubtitle').textContent = isBangla ? "জীববিজ্ঞান ইন্টারেক্টিভ সিমুলেশন ল্যাব" : "Interactive Biology Simulation Lab";
+      document.getElementById('mainTitle').textContent = isBangla ? "বায়োসিম" : "BIOSIM";
+      document.getElementById('mainSubtitle').textContent = isBangla ? "জীববিজ্ঞান সিমুলেশন ল্যাব" : "BIOLOGY SIMULATION LAB";
+      document.body.classList.toggle('bangla', isBangla);
     }
 
     function openSim(sim) {
       const urls = {
         dna: 'dna.html',
         neuron: 'neuron.html',
-        mitosis: 'mitosis.html',
-        heart: 'heart-circulation.html'
+        mitosis: 'mitosis.html'
       };
       
-      // Cyber-style feedback on the button
       const card = event.currentTarget;
       const btn = card.querySelector('.open-btn');
-      const originalText = btn.innerText;
-      btn.innerText = isBangla ? "লোড হচ্ছে..." : "INITIALIZING...";
+      btn.textContent = isBangla ? "লোড হচ্ছে..." : "INITIALIZING...";
       
-      // Brief delay for "tech feel" then redirect in SAME TAB
       setTimeout(() => {
-        if (urls[sim]) {
-            window.location.href = urls[sim];
-        }
-      }, 400);
+        if (urls[sim]) window.location.href = urls[sim];
+      }, 380);
     }
 
     function goToPortal() {
-      const portalBtn = document.querySelector('.left-corner');
-      portalBtn.innerText = isBangla ? "যাওযা হচ্ছে..." : "REDIRECTING...";
-      
-      // Redirect to main portal in SAME TAB
+      const btn = document.querySelector('.left-corner');
+      btn.textContent = isBangla ? "যাওয়া হচ্ছে..." : "RETURNING...";
       setTimeout(() => {
         window.location.href = 'https://stounchvicinity65.github.io/portal/';
-      }, 500);
+      }, 450);
     }
   </script>
 </body>

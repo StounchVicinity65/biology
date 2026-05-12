@@ -1,290 +1,645 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DNA Lab | ডিএনএ ল্যাব</title>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Serif+Bengali:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #030805;
-      --panel: rgba(5, 15, 10, 0.98);
-      --accent: #4ade80;
-      --adenine: #34d399;
-      --thymine: #60a5fa;
-      --guanine: #fbbf24;
-      --cytosine: #f472b6;
-      --text: #e2f3e9;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DNA Lab | ডিএনএ ল্যাব</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=Hind+Siliguri:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a06;
+    --panel-bg: #080f09;
+    --border: rgba(52,211,153,0.15);
+    --border-bright: rgba(52,211,153,0.4);
+    --accent: #34d399;
+    --accent-dim: rgba(52,211,153,0.6);
+    --text: #dff5ea;
+    --text-dim: rgba(223,245,234,0.55);
+    --text-muted: rgba(223,245,234,0.3);
+    --A: #34d399;
+    --T: #60a5fa;
+    --G: #fbbf24;
+    --C: #f472b6;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 100%; height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', 'Hind Siliguri', sans-serif;
+    display: flex;
+    overflow: hidden;
+  }
+  #stage {
+    flex: 1;
+    position: relative;
+    cursor: grab;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  #stage:active { cursor: grabbing; }
+  canvas { display: block; width: 100%; height: 100%; }
 
-    body, html {
-      margin: 0; padding: 0;
-      width: 100%; height: 100%;
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: 'Share Tech Mono', 'Noto Serif Bengali', monospace;
-      overflow: hidden;
-      display: flex;
-    }
+  #stage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px);
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
 
-    /* CANVAS AREA */
-    #canvasContainer {
-      flex: 1;
-      position: relative;
-      cursor: grab;
-      background: radial-gradient(circle at center, #0a1a0a 0%, #000 80%);
-    }
-    #canvasContainer:active { cursor: grabbing; }
-    canvas { display: block; width: 100%; height: 100%; }
+  #tooltip {
+    position: absolute;
+    background: rgba(8,15,9,0.95);
+    border: 1px solid var(--border-bright);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    padding: 7px 12px;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+    z-index: 50;
+  }
 
-    /* BACK BUTTON */
-    .back-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      padding: 10px 18px;
-      background: rgba(10, 30, 15, 0.9);
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      border-radius: 4px;
-      cursor: pointer;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.8rem;
-      transition: all 0.3s;
-      z-index: 100;
-      text-transform: uppercase;
-    }
-    .back-btn:hover {
-      background: var(--accent);
-      color: #000;
-      box-shadow: 0 0 15px var(--accent);
-    }
+  /* Panel */
+  #panel {
+    width: 380px;
+    min-width: 320px;
+    background: var(--panel-bg);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  #panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
+  }
+  #panelScroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 28px 20px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
+  }
+  #panelScroll::-webkit-scrollbar { width: 3px; }
+  #panelScroll::-webkit-scrollbar-thumb { background: var(--accent); }
 
-    /* SIDE PANEL */
-    #infoPanel {
-      width: 400px;
-      background: var(--panel);
-      border-left: 1px solid rgba(74, 222, 128, 0.3);
-      padding: 35px;
-      overflow-y: auto;
-      box-shadow: -15px 0 40px rgba(0,0,0,0.8);
-      z-index: 10;
-    }
+  .lang-row { display: flex; gap: 8px; margin-bottom: 24px; }
+  .lang-pill {
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+  }
+  .lang-pill.active {
+    background: var(--accent);
+    color: #051a0a;
+    border-color: var(--accent);
+  }
 
-    h1 { font-size: 1.8rem; margin: 0 0 15px; color: var(--accent); }
-    h2 { font-size: 1.1rem; margin: 25px 0 10px; color: #86efac; border-left: 3px solid var(--accent); padding-left: 10px; }
-    p { font-size: 0.95rem; line-height: 1.7; opacity: 0.9; margin-bottom: 20px; }
+  .panel-title { font-size: 1.5rem; font-weight: 600; color: var(--accent); margin-bottom: 6px; letter-spacing: -0.02em; }
+  .panel-subtitle { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; }
 
-    /* LEGEND STYLES */
-    .legend {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      background: rgba(0,0,0,0.4);
-      padding: 15px;
-      border-radius: 4px;
-      border: 1px solid rgba(74, 222, 128, 0.1);
-    }
-    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
-    .dot { width: 10px; height: 10px; border-radius: 2px; }
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
 
-    .bond-box {
-      margin-top: 15px;
-      padding: 12px;
-      background: rgba(74, 222, 128, 0.05);
-      border-radius: 4px;
-      font-size: 0.85rem;
-    }
+  .section-label {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
 
-    /* BUTTONS */
-    .btn-group { display: flex; gap: 10px; margin-top: 30px; }
-    button.action-btn {
-      flex: 1;
-      padding: 12px;
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      font-family: inherit;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
-      text-transform: uppercase;
-    }
-    button.action-btn:hover { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent); }
-    .lang-btn { background: var(--accent); color: #000; width: 100%; margin-bottom: 20px; border: none; padding: 12px; font-family: inherit; font-weight: bold; cursor: pointer; }
+  .body-text {
+    font-size: 0.85rem;
+    line-height: 1.72;
+    color: var(--text-dim);
+  }
 
-    /* CUSTOM SCROLLBAR */
-    #infoPanel::-webkit-scrollbar { width: 5px; }
-    #infoPanel::-webkit-scrollbar-thumb { background: var(--accent); }
-  </style>
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .stat-box {
+    text-align: center;
+    padding: 10px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.015);
+  }
+  .stat-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .stat-label { font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+
+  .bases-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .base-card {
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+  }
+  .base-letter {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .base-name { font-size: 0.72rem; color: var(--text-dim); }
+
+  .bond-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    margin-bottom: 8px;
+    font-size: 0.82rem;
+  }
+  .bond-pair { font-family: 'Share Tech Mono', monospace; font-weight: 600; min-width: 60px; }
+  .bond-dots { display: flex; gap: 3px; margin-left: auto; }
+  .bond-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.7;
+  }
+  .bond-count {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    min-width: 26px;
+    text-align: right;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  #controls {
+    padding: 18px 28px 24px;
+    border-top: 1px solid var(--border);
+    background: rgba(5,10,6,0.5);
+  }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .slider-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    min-width: 50px;
+  }
+  input[type=range] {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .slider-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    min-width: 30px;
+    text-align: right;
+  }
+
+  .btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .ctrl-btn {
+    padding: 9px 4px;
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+  .ctrl-btn:hover { background: rgba(52,211,153,0.1); border-color: var(--accent); }
+  .ctrl-btn.active {
+    background: var(--accent);
+    color: #051a0a;
+    border-color: var(--accent);
+  }
+
+  /* Sequence Ticker */
+  #seqTicker {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 30px;
+    background: rgba(5,10,6,0.9);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  #seqInner {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    animation: ticker 25s linear infinite;
+  }
+  @keyframes ticker {
+    from { transform: translateX(100%); }
+    to { transform: translateX(-100%); }
+  }
+  .seq-A { color: var(--A); }
+  .seq-T { color: var(--T); }
+  .seq-G { color: var(--G); }
+  .seq-C { color: var(--C); }
+</style>
 </head>
 <body>
 
-  <button class="back-btn" onclick="goBack()" id="bBtn">◀ BACK / ফিরে যান</button>
+<div id="stage">
+  <button class="ctrl-btn" style="position:absolute;top:18px;left:18px;z-index:100;" onclick="goBack()">◀ BACK</button>
+  <canvas id="dnaCanvas"></canvas>
+  <div id="tooltip"></div>
+  <div id="seqTicker">
+    <div id="seqInner"></div>
+  </div>
+</div>
 
-  <div id="canvasContainer">
-    <canvas id="dnaCanvas"></canvas>
+<div id="panel">
+  <div id="panelScroll">
+    <div class="lang-row">
+      <button class="lang-pill active" id="btnEN" onclick="setLang('en')">EN</button>
+      <button class="lang-pill" id="btnBN" onclick="setLang('bn')">বাংলা</button>
+    </div>
+
+    <div class="panel-title" id="title">Deoxyribonucleic Acid</div>
+    <div class="panel-subtitle" id="abbr">DNA — The Blueprint of Life</div>
+
+    <div class="stats-row">
+      <div class="stat-box"><span class="stat-value">3.2B</span><span class="stat-label" id="statLbl1">Base Pairs</span></div>
+      <div class="stat-box"><span class="stat-value">2nm</span><span class="stat-label" id="statLbl2">Width</span></div>
+      <div class="stat-box"><span class="stat-value">10</span><span class="stat-label" id="statLbl3">bp / Turn</span></div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label" id="secBases">Chemical Bases</div>
+    <div class="bases-grid">
+      <div class="base-card"><div class="base-letter" style="color:var(--A)">A</div><div class="base-name" id="baseA">Adenine — Purine</div></div>
+      <div class="base-card"><div class="base-letter" style="color:var(--T)">T</div><div class="base-name" id="baseT">Thymine — Pyrimidine</div></div>
+      <div class="base-card"><div class="base-letter" style="color:var(--G)">G</div><div class="base-name" id="baseG">Guanine — Purine</div></div>
+      <div class="base-card"><div class="base-letter" style="color:var(--C)">C</div><div class="base-name" id="baseC">Cytosine — Pyrimidine</div></div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label" id="secBonds">Hydrogen Bonds</div>
+    <div class="bond-row">
+      <span class="bond-pair" style="color:var(--A)">A—T</span>
+      <span class="body-text" id="bondAT">Weaker pair</span>
+      <div class="bond-dots"><div class="bond-dot"></div><div class="bond-dot"></div></div>
+      <span class="bond-count">×2</span>
+    </div>
+    <div class="bond-row">
+      <span class="bond-pair" style="color:var(--G)">G≡C</span>
+      <span class="body-text" id="bondGC">Stronger pair</span>
+      <div class="bond-dots"><div class="bond-dot"></div><div class="bond-dot"></div><div class="bond-dot"></div></div>
+      <span class="bond-count">×3</span>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label" id="secFact">Key Fact</div>
+    <p class="body-text" id="factText">If the DNA in a single human cell were uncoiled and stretched end to end, it would span ~2 metres — yet it is packed into a nucleus just 6 micrometres wide.</p>
   </div>
 
-  <div id="infoPanel">
-    <button class="lang-btn" onclick="toggleLanguage()" id="lBtn">🌐 বাংলা / EN</button>
-    
-    <h1 id="title">Deoxyribonucleic Acid</h1>
-    <p id="desc">DNA is the hereditary material in humans and almost all other organisms. It contains the instructions needed for an organism to develop, survive, and reproduce.</p>
-
-    <h2 id="hChem">Chemical Bases</h2>
-    <div class="legend">
-      <div class="legend-item"><div class="dot" style="background:var(--adenine)"></div> <span id="baseA">Adenine (A)</span></div>
-      <div class="legend-item"><div class="dot" style="background:var(--thymine)"></div> <span id="baseT">Thymine (T)</span></div>
-      <div class="legend-item"><div class="dot" style="background:var(--guanine)"></div> <span id="baseG">Guanine (G)</span></div>
-      <div class="legend-item"><div class="dot" style="background:var(--cytosine)"></div> <span id="baseC">Cytosine (C)</span></div>
+  <div id="controls">
+    <div class="slider-row">
+      <span class="slider-label" id="lblSpeed">Speed</span>
+      <input type="range" id="speedSlider" min="0" max="100" value="50">
+      <span class="slider-val" id="speedVal">50</span>
     </div>
-
-    <h2 id="hBond">Hydrogen Bonding</h2>
-    <p id="bondDesc">Base pairs are held together by hydrogen bonds. G-C pairs are harder to break because they have more bonds.</p>
-    <div class="bond-box">
-      <b style="color:var(--accent)">A = T :</b> <span id="bond2">2 Hydrogen Bonds</span><br>
-      <b style="color:var(--accent)">G ≡ C :</b> <span id="bond3">3 Hydrogen Bonds</span>
+    <div class="slider-row">
+      <span class="slider-label" id="lblZoom">Zoom</span>
+      <input type="range" id="zoomSlider" min="30" max="200" value="100">
+      <span class="slider-val" id="zoomVal">1.0×</span>
     </div>
-
-    <h2 id="hMech">Structure</h2>
-    <p id="structDesc">The double helix features a sugar-phosphate backbone and two antiparallel strands rotating around a common axis.</p>
-
-    <div class="btn-group">
-      <button class="action-btn" onclick="toggleRotate()" id="pBtn">Pause</button>
-      <button class="action-btn" onclick="resetCamera()" id="rBtn">Reset</button>
+    <div class="btn-row">
+      <button class="ctrl-btn active" id="btnPause" onclick="togglePause()">⏸ PAUSE</button>
+      <button class="ctrl-btn" onclick="resetView()">↺ RESET</button>
+      <button class="ctrl-btn" id="btnStyle" onclick="cycleStyle()">◈ GLOW</button>
     </div>
   </div>
+</div>
 
-  <script>
-    const canvas = document.getElementById('dnaCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    let isBangla = false;
-    let rotation = 0, isRotating = true, zoom = 1, dragY = 0;
-    const baseColors = { A: '#34d399', T: '#60a5fa', G: '#fbbf24', C: '#f472b6' };
+<script>
+// ==================== MAIN SCRIPT ====================
+const canvas = document.getElementById('dnaCanvas');
+const ctx = canvas.getContext('2d');
+const tip = document.getElementById('tooltip');
 
-    const content = {
-      en: {
-        title: "Deoxyribonucleic Acid",
-        desc: "DNA is the hereditary material in humans and almost all other organisms. It contains the instructions needed for an organism to develop, survive, and reproduce.",
-        hChem: "Chemical Bases",
-        baseA: "Adenine (A)", baseT: "Thymine (T)", baseG: "Guanine (G)", baseC: "Cytosine (C)",
-        hBond: "Hydrogen Bonding",
-        bondDesc: "Base pairs are held together by hydrogen bonds. G-C pairs are harder to break because they have more bonds.",
-        bond2: "2 Hydrogen Bonds", bond3: "3 Hydrogen Bonds",
-        hMech: "Structure",
-        structDesc: "The double helix features a sugar-phosphate backbone and two antiparallel strands rotating around a common axis.",
-        pBtn: "Pause / Play", rBtn: "Reset View",
-        bBtn: "◀ BACK / ফিরে যান"
-      },
-      bn: {
-        title: "ডিঅক্সিরাইবোনিউক্লিক অ্যাসিড",
-        desc: "ডিএনএ হলো মানুষ এবং প্রায় সব জীবের বংশগতির উপাদান। এতে একটি জীবের বিকাশ, বেঁচে থাকা এবং বংশবৃদ্ধির জন্য প্রয়োজনীয় নির্দেশাবলী থাকে।",
-        hChem: "রাসায়নিক ক্ষারক",
-        baseA: "অ্যাডেনিন (A)", baseT: "থাইমিন (T)", baseG: "গুয়ানিন (G)", baseC: "সাইটোসিন (C)",
-        hBond: "হাইড্রোজেন বন্ধন",
-        bondDesc: "ক্ষারক জোড়াগুলো হাইড্রোজেন বন্ধনের মাধ্যমে যুক্ত থাকে। G-C জোড়া ভাঙা কঠিন কারণ এতে বেশি বন্ধন থাকে।",
-        bond2: "২টি হাইড্রোজেন বন্ধন", bond3: "৩টি হাইড্রোজেন বন্ধন",
-        hMech: "গঠন",
-        structDesc: "ডাবল হেলিক্স কাঠামোটি চিনি-ফসফেট ব্যাকবোন এবং দুটি বিপরীতমুখী স্ট্র্যান্ড নিয়ে গঠিত যা একটি সাধারণ অক্ষকে কেন্দ্র করে ঘোরে।",
-        pBtn: "থামান / চালান", rBtn: "রিসেট করুন",
-        bBtn: "◀ পিছনে ফিরুন"
-      }
-    };
+let rotation = 0, isPlaying = true, zoom = 1.0, dragY = 0;
+let isDragging = false, lastMouseY = 0;
+let styleMode = 0; // 0 = glow, 1 = flat, 2 = wire
+let hoveredPair = -1;
+let lang = 'en';
 
-    function toggleLanguage() {
-      isBangla = !isBangla;
-      const lang = isBangla ? 'bn' : 'en';
-      for (let id in content[lang]) {
-        const el = document.getElementById(id);
-        if (el) el.innerText = content[lang][id];
-      }
+const BASE_COLORS = { A:'#34d399', T:'#60a5fa', G:'#fbbf24', C:'#f472b6' };
+const PAIRS = [['A','T'],['T','A'],['G','C'],['C','G'],['A','T'],['G','C'],['T','A'],['C','G']];
+
+const C = { /* same content object as before */ 
+  en: {
+    title: 'Deoxyribonucleic Acid', abbr: 'DNA — The Blueprint of Life',
+    statLbl1: 'Base Pairs', statLbl2: 'Width', statLbl3: 'bp / Turn',
+    secBases: 'Chemical Bases',
+    baseA: 'Adenine — Purine', baseT: 'Thymine — Pyrimidine',
+    baseG: 'Guanine — Purine', baseC: 'Cytosine — Pyrimidine',
+    secBonds: 'Hydrogen Bonds',
+    bondAT: 'Weaker pair', bondGC: 'Stronger pair',
+    secFact: 'Key Fact',
+    factText: "If the DNA in a single human cell were uncoiled and stretched end to end, it would span ~2 metres — yet it is packed into a nucleus just 6 micrometres wide.",
+    lblSpeed: 'Speed', lblZoom: 'Zoom'
+  },
+  bn: {
+    title: 'ডিঅক্সিরাইবোনিউক্লিক অ্যাসিড', abbr: 'ডিএনএ — জীবনের নকশা',
+    statLbl1: 'বেস পেয়ার', statLbl2: 'প্রস্থ', statLbl3: 'bp / ঘূর্ণন',
+    secBases: 'রাসায়নিক ক্ষারক',
+    baseA: 'অ্যাডেনিন — পিউরিন', baseT: 'থাইমিন — পাইরিমিডিন',
+    baseG: 'গুয়ানিন — পিউরিন', baseC: 'সাইটোসিন — পাইরিমিডিন',
+    secBonds: 'হাইড্রোজেন বন্ধন',
+    bondAT: 'দুর্বলতর জোড়', bondGC: 'শক্তিশালী জোড়',
+    secFact: 'গুরুত্বপূর্ণ তথ্য',
+    factText: "একটি মানব কোষের ডিএনএ যদি খুলে সোজা করা হতো, তবে তা প্রায় ২ মিটার দীর্ঘ হতো — অথচ এটি মাত্র ৬ মাইক্রোমিটার চওড়া নিউক্লিয়াসে গুটানো থাকে।",
+    lblSpeed: 'গতি', lblZoom: 'জুম'
+  }
+};
+
+function setLang(l) {
+  lang = l;
+  const d = C[l];
+  document.getElementById('btnEN').classList.toggle('active', l==='en');
+  document.getElementById('btnBN').classList.toggle('active', l==='bn');
+  Object.keys(d).forEach(key => {
+    const el = document.getElementById(key);
+    if (el) el.textContent = d[key];
+  });
+}
+
+// Canvas Setup
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = canvas.parentElement.clientWidth * dpr;
+  canvas.height = canvas.parentElement.clientHeight * dpr;
+  ctx.scale(dpr, dpr);
+}
+window.addEventListener('resize', resize);
+resize();
+
+function W() { return canvas.width / (window.devicePixelRatio || 1); }
+function H() { return canvas.height / (window.devicePixelRatio || 1); }
+
+// Draw Function
+function draw() {
+  ctx.clearRect(0, 0, W(), H());
+  const cx = W() / 2;
+  const cy = H() / 2 + dragY;
+  const radius = 90 * zoom;
+  const spacing = 28 * zoom;
+  const nodeR = 7 * zoom;
+  const ROWS = 28;
+
+  // Backbones
+  for (let side = 0; side < 2; side++) {
+    ctx.beginPath();
+    for (let i = -ROWS; i <= ROWS; i++) {
+      const a = rotation + i * 0.42 + (side ? Math.PI : 0);
+      const x = cx + Math.sin(a) * radius;
+      const y = cy + i * spacing;
+      i === -ROWS ? ctx.moveTo(x, y) : ctx.quadraticCurveTo(x, y, x, y);
     }
+    ctx.strokeStyle = 'rgba(52,211,153,0.18)';
+    ctx.lineWidth = 2.2 * zoom;
+    ctx.stroke();
+  }
 
-    function goBack() {
-      const btn = document.getElementById('bBtn');
-      btn.innerText = isBangla ? "ফিরছি..." : "EXITING...";
-      setTimeout(() => {
-        window.location.href = 'index.html'; 
-      }, 400);
-    }
+  const nodes = [];
+  for (let i = -ROWS/2; i < ROWS/2; i++) {
+    const y = cy + i * spacing;
+    if (y < -nodeR || y > H() + nodeR) continue;
 
-    function resize() {
-      canvas.width = canvas.parentElement.clientWidth;
-      canvas.height = canvas.parentElement.clientHeight;
-    }
-    window.addEventListener('resize', resize);
-    resize();
+    const angle = rotation + i * 0.42;
+    const x1 = cx + Math.sin(angle) * radius;
+    const x2 = cx + Math.sin(angle + Math.PI) * radius;
+    const z1 = Math.cos(angle);
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2 + dragY;
-      const radius = 110 * zoom;
-      const spacing = 32 * zoom;
+    const pIdx = Math.abs(i) % PAIRS.length;
+    const [b1, b2] = PAIRS[pIdx];
+    const bonds = (b1 === 'G' || b1 === 'C') ? 3 : 2;
+    const isHover = (i === hoveredPair);
 
-      for (let i = -20; i < 20; i++) {
-        const y = cy + i * spacing;
-        if (y < -50 || y > canvas.height + 50) continue;
-
-        const angle = rotation + (i * 0.45);
-        const x1 = cx + Math.sin(angle) * radius;
-        const x2 = cx + Math.sin(angle + Math.PI) * radius;
-        const z1 = Math.cos(angle); 
-        const z2 = Math.cos(angle + Math.PI);
-
-        const pair = Math.abs(i % 2);
-        const [b1, b2, bonds] = (pair === 0) ? ['A', 'T', 2] : ['G', 'C', 3];
-
-        ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-        ctx.setLineDash([3, 5]);
-        ctx.lineWidth = 1 * zoom;
-        for (let j = 0; j < bonds; j++) {
-          const bOff = (j - (bonds-1)/2) * 6 * zoom;
-          ctx.beginPath();
-          ctx.moveTo(x1, y + bOff); ctx.lineTo(x2, y + bOff);
-          ctx.stroke();
-        }
-        ctx.setLineDash([]);
-
-        drawNode(x1, y, baseColors[b1], z1);
-        drawNode(x2, y, baseColors[b2], z2);
-      }
-      if (isRotating) rotation += 0.015;
-      requestAnimationFrame(draw);
-    }
-
-    function drawNode(x, y, color, z) {
-      const size = (7 + z * 3) * zoom;
-      const alpha = (z + 1.5) / 2.5;
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = color;
+    // Hydrogen bonds
+    for (let j = 0; j < bonds; j++) {
+      const off = (j - (bonds-1)/2) * 5 * zoom;
+      ctx.save();
+      ctx.setLineDash([4*zoom, 4*zoom]);
+      ctx.lineWidth = 0.9;
+      ctx.strokeStyle = `rgba(255,255,255,${0.25 + Math.abs(z1)*0.3 + (isHover?0.2:0)})`;
       ctx.beginPath();
-      ctx.arc(x, y, size, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 15;
-      ctx.shadowColor = color;
-      ctx.globalAlpha = 1;
-      ctx.shadowBlur = 0;
+      ctx.moveTo(x1, y + off);
+      ctx.lineTo(x2, y + off);
+      ctx.stroke();
+      ctx.restore();
     }
 
-    let isDragging = false, lastY = 0;
-    canvas.addEventListener('mousedown', e => { isDragging = true; lastY = e.clientY; });
-    window.addEventListener('mousemove', e => {
-      if (isDragging) { dragY += e.clientY - lastY; lastY = e.clientY; }
-    });
-    window.addEventListener('mouseup', () => isDragging = false);
-    canvas.addEventListener('wheel', e => {
-      e.preventDefault();
-      zoom += e.deltaY < 0 ? 0.05 : -0.05;
-      zoom = Math.max(0.3, Math.min(zoom, 2.5));
-    });
+    drawNode(x1, y, BASE_COLORS[b1], z1, nodeR, isHover, b1);
+    drawNode(x2, y, BASE_COLORS[b2], Math.cos(angle+Math.PI), nodeR, isHover, b2);
 
-    function toggleRotate() { isRotating = !isRotating; }
-    function resetCamera() { zoom = 1; dragY = 0; rotation = 0; }
+    nodes.push({i, x1, x2, y, b1, b2, bonds});
+  }
+  return nodes;
+}
 
-    draw();
-  </script>
+function drawNode(x, y, color, z, r, hover, label) {
+  const size = r * (0.8 + z * 0.35 + (hover ? 0.25 : 0));
+  const alpha = Math.max(0.3, (z + 1.5) / 2.5);
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  if (styleMode === 2) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI*2);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI*2);
+    ctx.fill();
+
+    if (styleMode === 0) { // glow
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = color;
+      ctx.globalAlpha = alpha * 0.35;
+      ctx.beginPath();
+      ctx.arc(x, y, size * 1.7, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    if (size > 6) {
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#050a06';
+      ctx.font = `bold ${Math.round(size*1.15)}px 'Share Tech Mono', monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, x, y);
+    }
+  }
+  ctx.restore();
+}
+
+let nodes = [];
+function loop() {
+  nodes = draw();
+  if (isPlaying) rotation += 0.012 * (document.getElementById('speedSlider').value / 50);
+  requestAnimationFrame(loop);
+}
+loop();
+
+// Controls
+const speedSlider = document.getElementById('speedSlider');
+const zoomSlider = document.getElementById('zoomSlider');
+
+speedSlider.addEventListener('input', () => document.getElementById('speedVal').textContent = speedSlider.value);
+zoomSlider.addEventListener('input', () => {
+  zoom = zoomSlider.value / 100;
+  document.getElementById('zoomVal').textContent = zoom.toFixed(1) + '×';
+});
+
+function togglePause() {
+  isPlaying = !isPlaying;
+  const btn = document.getElementById('btnPause');
+  btn.textContent = isPlaying ? '⏸ PAUSE' : '▶ PLAY';
+  btn.classList.toggle('active', isPlaying);
+}
+
+function resetView() {
+  rotation = 0; dragY = 0; zoom = 1;
+  zoomSlider.value = 100;
+  speedSlider.value = 50;
+  document.getElementById('zoomVal').textContent = '1.0×';
+  document.getElementById('speedVal').textContent = '50';
+}
+
+function cycleStyle() {
+  styleMode = (styleMode + 1) % 3;
+  const names = ['GLOW', 'FLAT', 'WIRE'];
+  document.getElementById('btnStyle').textContent = '◈ ' + names[styleMode];
+}
+
+// Interaction
+canvas.addEventListener('mousedown', e => { isDragging = true; lastMouseY = e.clientY; });
+window.addEventListener('mousemove', e => {
+  if (isDragging) dragY += e.clientY - lastMouseY, lastMouseY = e.clientY;
+
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  let found = -99;
+  for (const n of nodes) {
+    if (Math.hypot(mx - n.x1, my - n.y) < 16*zoom || Math.hypot(mx - n.x2, my - n.y) < 16*zoom) {
+      found = n.i;
+      const base = Math.hypot(mx - n.x1, my - n.y) < Math.hypot(mx - n.x2, my - n.y) ? n.b1 : n.b2;
+      tip.textContent = `${base === 'A' ? 'Adenine' : base === 'T' ? 'Thymine' : base === 'G' ? 'Guanine' : 'Cytosine'} (${base}) · ${n.bonds} H-bonds`;
+      tip.style.left = (e.clientX - rect.left + 15) + 'px';
+      tip.style.top = (e.clientY - rect.top - 12) + 'px';
+      tip.style.opacity = '1';
+      break;
+    }
+  }
+  if (found === -99) tip.style.opacity = '0';
+  hoveredPair = found;
+});
+window.addEventListener('mouseup', () => isDragging = false);
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  zoom = Math.min(2.5, Math.max(0.3, zoom + (e.deltaY < 0 ? 0.07 : -0.07)));
+  zoomSlider.value = Math.round(zoom * 100);
+  document.getElementById('zoomVal').textContent = zoom.toFixed(1) + '×';
+}, {passive: false});
+
+// Touch support
+let lastTouchY = 0;
+canvas.addEventListener('touchstart', e => lastTouchY = e.touches[0].clientY);
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  dragY += e.touches[0].clientY - lastTouchY;
+  lastTouchY = e.touches[0].clientY;
+}, {passive: false});
+
+// Sequence Ticker
+function buildTicker() {
+  const seq = 'ATGCGATCGTAGCTAGCTAGCATCGATCGATGCATCGTAGCATGCAATCGATCGATGC';
+  let html = '';
+  for (let char of seq.repeat(3)) {
+    html += `<span class="seq-${char}">${char}</span>`;
+  }
+  document.getElementById('seqInner').innerHTML = html;
+}
+buildTicker();
+
+function goBack() {
+  window.location.href = 'index.html'; // change if needed
+}
+</script>
 </body>
 </html>

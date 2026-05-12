@@ -37,6 +37,29 @@
     #canvasContainer:active { cursor: grabbing; }
     canvas { display: block; width: 100%; height: 100%; }
 
+    /* BACK BUTTON */
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 10px 18px;
+      background: rgba(10, 30, 15, 0.9);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      transition: all 0.3s;
+      z-index: 100;
+      text-transform: uppercase;
+    }
+    .back-btn:hover {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 0 15px var(--accent);
+    }
+
     /* SIDE PANEL */
     #infoPanel {
       width: 400px;
@@ -75,7 +98,7 @@
 
     /* BUTTONS */
     .btn-group { display: flex; gap: 10px; margin-top: 30px; }
-    button {
+    button.action-btn {
       flex: 1;
       padding: 12px;
       background: transparent;
@@ -87,8 +110,8 @@
       transition: 0.3s;
       text-transform: uppercase;
     }
-    button:hover { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent); }
-    .lang-btn { background: var(--accent); color: #000; }
+    button.action-btn:hover { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent); }
+    .lang-btn { background: var(--accent); color: #000; width: 100%; margin-bottom: 20px; border: none; padding: 12px; font-family: inherit; font-weight: bold; cursor: pointer; }
 
     /* CUSTOM SCROLLBAR */
     #infoPanel::-webkit-scrollbar { width: 5px; }
@@ -96,6 +119,8 @@
   </style>
 </head>
 <body>
+
+  <button class="back-btn" onclick="goBack()" id="bBtn">◀ BACK / ফিরে যান</button>
 
   <div id="canvasContainer">
     <canvas id="dnaCanvas"></canvas>
@@ -126,8 +151,8 @@
     <p id="structDesc">The double helix features a sugar-phosphate backbone and two antiparallel strands rotating around a common axis.</p>
 
     <div class="btn-group">
-      <button onclick="toggleRotate()" id="pBtn">Pause</button>
-      <button onclick="resetCamera()" id="rBtn">Reset</button>
+      <button class="action-btn" onclick="toggleRotate()" id="pBtn">Pause</button>
+      <button class="action-btn" onclick="resetCamera()" id="rBtn">Reset</button>
     </div>
   </div>
 
@@ -150,7 +175,8 @@
         bond2: "2 Hydrogen Bonds", bond3: "3 Hydrogen Bonds",
         hMech: "Structure",
         structDesc: "The double helix features a sugar-phosphate backbone and two antiparallel strands rotating around a common axis.",
-        pBtn: "Pause / Play", rBtn: "Reset View"
+        pBtn: "Pause / Play", rBtn: "Reset View",
+        bBtn: "◀ BACK / ফিরে যান"
       },
       bn: {
         title: "ডিঅক্সিরাইবোনিউক্লিক অ্যাসিড",
@@ -162,7 +188,8 @@
         bond2: "২টি হাইড্রোজেন বন্ধন", bond3: "৩টি হাইড্রোজেন বন্ধন",
         hMech: "গঠন",
         structDesc: "ডাবল হেলিক্স কাঠামোটি চিনি-ফসফেট ব্যাকবোন এবং দুটি বিপরীতমুখী স্ট্র্যান্ড নিয়ে গঠিত যা একটি সাধারণ অক্ষকে কেন্দ্র করে ঘোরে।",
-        pBtn: "থামান / চালান", rBtn: "রিসেট করুন"
+        pBtn: "থামান / চালান", rBtn: "রিসেট করুন",
+        bBtn: "◀ পিছনে ফিরুন"
       }
     };
 
@@ -170,8 +197,17 @@
       isBangla = !isBangla;
       const lang = isBangla ? 'bn' : 'en';
       for (let id in content[lang]) {
-        document.getElementById(id).innerText = content[lang][id];
+        const el = document.getElementById(id);
+        if (el) el.innerText = content[lang][id];
       }
+    }
+
+    function goBack() {
+      const btn = document.getElementById('bBtn');
+      btn.innerText = isBangla ? "ফিরছি..." : "EXITING...";
+      setTimeout(() => {
+        window.location.href = 'index.html'; 
+      }, 400);
     }
 
     function resize() {
@@ -198,11 +234,9 @@
         const z1 = Math.cos(angle); 
         const z2 = Math.cos(angle + Math.PI);
 
-        // Sequence Logic
         const pair = Math.abs(i % 2);
         const [b1, b2, bonds] = (pair === 0) ? ['A', 'T', 2] : ['G', 'C', 3];
 
-        // Draw H-Bonds
         ctx.strokeStyle = 'rgba(255,255,255,0.4)';
         ctx.setLineDash([3, 5]);
         ctx.lineWidth = 1 * zoom;
@@ -214,7 +248,6 @@
         }
         ctx.setLineDash([]);
 
-        // Draw Bases
         drawNode(x1, y, baseColors[b1], z1);
         drawNode(x2, y, baseColors[b2], z2);
       }
@@ -230,14 +263,12 @@
       ctx.beginPath();
       ctx.arc(x, y, size, 0, Math.PI * 2);
       ctx.fill();
-      // Glow
       ctx.shadowBlur = 15;
       ctx.shadowColor = color;
       ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
     }
 
-    // Interaction
     let isDragging = false, lastY = 0;
     canvas.addEventListener('mousedown', e => { isDragging = true; lastY = e.clientY; });
     window.addEventListener('mousemove', e => {

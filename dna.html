@@ -1,1 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DNA Lab | ডিএনএ ল্যাব</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Serif+Bengali:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #030805;
+      --panel: rgba(5, 15, 10, 0.98);
+      --accent: #4ade80;
+      --adenine: #34d399;
+      --thymine: #60a5fa;
+      --guanine: #fbbf24;
+      --cytosine: #f472b6;
+      --text: #e2f3e9;
+    }
 
+    body, html {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', 'Noto Serif Bengali', monospace;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* CANVAS AREA */
+    #canvasContainer {
+      flex: 1;
+      position: relative;
+      cursor: grab;
+      background: radial-gradient(circle at center, #0a1a0a 0%, #000 80%);
+    }
+    #canvasContainer:active { cursor: grabbing; }
+    canvas { display: block; width: 100%; height: 100%; }
+
+    /* SIDE PANEL */
+    #infoPanel {
+      width: 400px;
+      background: var(--panel);
+      border-left: 1px solid rgba(74, 222, 128, 0.3);
+      padding: 35px;
+      overflow-y: auto;
+      box-shadow: -15px 0 40px rgba(0,0,0,0.8);
+      z-index: 10;
+    }
+
+    h1 { font-size: 1.8rem; margin: 0 0 15px; color: var(--accent); }
+    h2 { font-size: 1.1rem; margin: 25px 0 10px; color: #86efac; border-left: 3px solid var(--accent); padding-left: 10px; }
+    p { font-size: 0.95rem; line-height: 1.7; opacity: 0.9; margin-bottom: 20px; }
+
+    /* LEGEND STYLES */
+    .legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      background: rgba(0,0,0,0.4);
+      padding: 15px;
+      border-radius: 4px;
+      border: 1px solid rgba(74, 222, 128, 0.1);
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+    .dot { width: 10px; height: 10px; border-radius: 2px; }
+
+    .bond-box {
+      margin-top: 15px;
+      padding: 12px;
+      background: rgba(74, 222, 128, 0.05);
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    /* BUTTONS */
+    .btn-group { display: flex; gap: 10px; margin-top: 30px; }
+    button {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      font-family: inherit;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      text-transform: uppercase;
+    }
+    button:hover { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent); }
+    .lang-btn { background: var(--accent); color: #000; }
+
+    /* CUSTOM SCROLLBAR */
+    #infoPanel::-webkit-scrollbar { width: 5px; }
+    #infoPanel::-webkit-scrollbar-thumb { background: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <div id="canvasContainer">
+    <canvas id="dnaCanvas"></canvas>
+  </div>
+
+  <div id="infoPanel">
+    <button class="lang-btn" onclick="toggleLanguage()" id="lBtn">🌐 বাংলা / EN</button>
+    
+    <h1 id="title">Deoxyribonucleic Acid</h1>
+    <p id="desc">DNA is the hereditary material in humans and almost all other organisms. It contains the instructions needed for an organism to develop, survive, and reproduce.</p>
+
+    <h2 id="hChem">Chemical Bases</h2>
+    <div class="legend">
+      <div class="legend-item"><div class="dot" style="background:var(--adenine)"></div> <span id="baseA">Adenine (A)</span></div>
+      <div class="legend-item"><div class="dot" style="background:var(--thymine)"></div> <span id="baseT">Thymine (T)</span></div>
+      <div class="legend-item"><div class="dot" style="background:var(--guanine)"></div> <span id="baseG">Guanine (G)</span></div>
+      <div class="legend-item"><div class="dot" style="background:var(--cytosine)"></div> <span id="baseC">Cytosine (C)</span></div>
+    </div>
+
+    <h2 id="hBond">Hydrogen Bonding</h2>
+    <p id="bondDesc">Base pairs are held together by hydrogen bonds. G-C pairs are harder to break because they have more bonds.</p>
+    <div class="bond-box">
+      <b style="color:var(--accent)">A = T :</b> <span id="bond2">2 Hydrogen Bonds</span><br>
+      <b style="color:var(--accent)">G ≡ C :</b> <span id="bond3">3 Hydrogen Bonds</span>
+    </div>
+
+    <h2 id="hMech">Structure</h2>
+    <p id="structDesc">The double helix features a sugar-phosphate backbone and two antiparallel strands rotating around a common axis.</p>
+
+    <div class="btn-group">
+      <button onclick="toggleRotate()" id="pBtn">Pause</button>
+      <button onclick="resetCamera()" id="rBtn">Reset</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('dnaCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let isBangla = false;
+    let rotation = 0, isRotating = true, zoom = 1, dragY = 0;
+    const baseColors = { A: '#34d399', T: '#60a5fa', G: '#fbbf24', C: '#f472b6' };
+
+    const content = {
+      en: {
+        title: "Deoxyribonucleic Acid",
+        desc: "DNA is the hereditary material in humans and almost all other organisms. It contains the instructions needed for an organism to develop, survive, and reproduce.",
+        hChem: "Chemical Bases",
+        baseA: "Adenine (A)", baseT: "Thymine (T)", baseG: "Guanine (G)", baseC: "Cytosine (C)",
+        hBond: "Hydrogen Bonding",
+        bondDesc: "Base pairs are held together by hydrogen bonds. G-C pairs are harder to break because they have more bonds.",
+        bond2: "2 Hydrogen Bonds", bond3: "3 Hydrogen Bonds",
+        hMech: "Structure",
+        structDesc: "The double helix features a sugar-phosphate backbone and two antiparallel strands rotating around a common axis.",
+        pBtn: "Pause / Play", rBtn: "Reset View"
+      },
+      bn: {
+        title: "ডিঅক্সিরাইবোনিউক্লিক অ্যাসিড",
+        desc: "ডিএনএ হলো মানুষ এবং প্রায় সব জীবের বংশগতির উপাদান। এতে একটি জীবের বিকাশ, বেঁচে থাকা এবং বংশবৃদ্ধির জন্য প্রয়োজনীয় নির্দেশাবলী থাকে।",
+        hChem: "রাসায়নিক ক্ষারক",
+        baseA: "অ্যাডেনিন (A)", baseT: "থাইমিন (T)", baseG: "গুয়ানিন (G)", baseC: "সাইটোসিন (C)",
+        hBond: "হাইড্রোজেন বন্ধন",
+        bondDesc: "ক্ষারক জোড়াগুলো হাইড্রোজেন বন্ধনের মাধ্যমে যুক্ত থাকে। G-C জোড়া ভাঙা কঠিন কারণ এতে বেশি বন্ধন থাকে।",
+        bond2: "২টি হাইড্রোজেন বন্ধন", bond3: "৩টি হাইড্রোজেন বন্ধন",
+        hMech: "গঠন",
+        structDesc: "ডাবল হেলিক্স কাঠামোটি চিনি-ফসফেট ব্যাকবোন এবং দুটি বিপরীতমুখী স্ট্র্যান্ড নিয়ে গঠিত যা একটি সাধারণ অক্ষকে কেন্দ্র করে ঘোরে।",
+        pBtn: "থামান / চালান", rBtn: "রিসেট করুন"
+      }
+    };
+
+    function toggleLanguage() {
+      isBangla = !isBangla;
+      const lang = isBangla ? 'bn' : 'en';
+      for (let id in content[lang]) {
+        document.getElementById(id).innerText = content[lang][id];
+      }
+    }
+
+    function resize() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2 + dragY;
+      const radius = 110 * zoom;
+      const spacing = 32 * zoom;
+
+      for (let i = -20; i < 20; i++) {
+        const y = cy + i * spacing;
+        if (y < -50 || y > canvas.height + 50) continue;
+
+        const angle = rotation + (i * 0.45);
+        const x1 = cx + Math.sin(angle) * radius;
+        const x2 = cx + Math.sin(angle + Math.PI) * radius;
+        const z1 = Math.cos(angle); 
+        const z2 = Math.cos(angle + Math.PI);
+
+        // Sequence Logic
+        const pair = Math.abs(i % 2);
+        const [b1, b2, bonds] = (pair === 0) ? ['A', 'T', 2] : ['G', 'C', 3];
+
+        // Draw H-Bonds
+        ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+        ctx.setLineDash([3, 5]);
+        ctx.lineWidth = 1 * zoom;
+        for (let j = 0; j < bonds; j++) {
+          const bOff = (j - (bonds-1)/2) * 6 * zoom;
+          ctx.beginPath();
+          ctx.moveTo(x1, y + bOff); ctx.lineTo(x2, y + bOff);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // Draw Bases
+        drawNode(x1, y, baseColors[b1], z1);
+        drawNode(x2, y, baseColors[b2], z2);
+      }
+      if (isRotating) rotation += 0.015;
+      requestAnimationFrame(draw);
+    }
+
+    function drawNode(x, y, color, z) {
+      const size = (7 + z * 3) * zoom;
+      const alpha = (z + 1.5) / 2.5;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
+      // Glow
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = color;
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+    }
+
+    // Interaction
+    let isDragging = false, lastY = 0;
+    canvas.addEventListener('mousedown', e => { isDragging = true; lastY = e.clientY; });
+    window.addEventListener('mousemove', e => {
+      if (isDragging) { dragY += e.clientY - lastY; lastY = e.clientY; }
+    });
+    window.addEventListener('mouseup', () => isDragging = false);
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      zoom += e.deltaY < 0 ? 0.05 : -0.05;
+      zoom = Math.max(0.3, Math.min(zoom, 2.5));
+    });
+
+    function toggleRotate() { isRotating = !isRotating; }
+    function resetCamera() { zoom = 1; dragY = 0; rotation = 0; }
+
+    draw();
+  </script>
+</body>
+</html>

@@ -4,425 +4,641 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DNA Lab | ডিএনএ ল্যাব</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Share+Tech+Mono&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=Hind+Siliguri:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #050a06;
-    --panel: #080f09;
+    --panel-bg: #080f09;
+    --border: rgba(52,211,153,0.15);
+    --border-bright: rgba(52,211,153,0.4);
     --accent: #34d399;
-    --border: rgba(52,211,153,0.18);
+    --accent-dim: rgba(52,211,153,0.6);
+    --text: #dff5ea;
+    --text-dim: rgba(223,245,234,0.55);
+    --text-muted: rgba(223,245,234,0.3);
+    --A: #34d399;
+    --T: #60a5fa;
+    --G: #fbbf24;
+    --C: #f472b6;
   }
-  * { margin:0; padding:0; box-sizing:border-box; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    width: 100vw; height: 100vh;
+    width: 100%; height: 100vh;
     background: var(--bg);
-    color: #dff5ea;
-    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text);
+    font-family: 'Space Grotesk', 'Hind Siliguri', sans-serif;
     display: flex;
     overflow: hidden;
   }
   #stage {
     flex: 1;
     position: relative;
-    background: var(--bg);
     cursor: grab;
+    background: var(--bg);
+    overflow: hidden;
   }
   #stage:active { cursor: grabbing; }
   canvas { display: block; width: 100%; height: 100%; }
 
+  #stage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px);
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+
   #tooltip {
     position: absolute;
-    background: rgba(8,15,9,0.96);
-    border: 1px solid #34d399;
-    color: #dff5ea;
+    background: rgba(8,15,9,0.95);
+    border: 1px solid var(--border-bright);
+    color: var(--text);
     font-family: 'Share Tech Mono', monospace;
-    font-size: 13px;
-    padding: 8px 12px;
+    font-size: 0.72rem;
+    padding: 7px 12px;
     border-radius: 4px;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.2s;
-    z-index: 100;
     white-space: nowrap;
+    z-index: 50;
   }
 
+  /* Panel */
   #panel {
     width: 380px;
-    background: var(--panel);
+    min-width: 320px;
+    background: var(--panel-bg);
     border-left: 1px solid var(--border);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  #panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
   }
   #panelScroll {
     flex: 1;
     overflow-y: auto;
-    padding: 28px;
+    padding: 28px 28px 20px;
     scrollbar-width: thin;
-    scrollbar-color: #34d399 transparent;
+    scrollbar-color: var(--accent) transparent;
   }
+  #panelScroll::-webkit-scrollbar { width: 3px; }
+  #panelScroll::-webkit-scrollbar-thumb { background: var(--accent); }
+
   .lang-row { display: flex; gap: 8px; margin-bottom: 24px; }
   .lang-pill {
-    padding: 6px 16px;
-    border-radius: 30px;
-    font-size: 0.75rem;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
     cursor: pointer;
     border: 1px solid var(--border);
     background: transparent;
-    color: #a0d4c0;
+    color: var(--text-dim);
   }
   .lang-pill.active {
-    background: #34d399;
+    background: var(--accent);
     color: #051a0a;
-    border-color: #34d399;
+    border-color: var(--accent);
   }
 
-  .title { font-size: 1.55rem; font-weight: 600; color: #34d399; margin-bottom: 4px; }
-  .subtitle { font-size: 0.78rem; color: #8cc9b0; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; }
+  .panel-title { font-size: 1.5rem; font-weight: 600; color: var(--accent); margin-bottom: 6px; letter-spacing: -0.02em; }
+  .panel-subtitle { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  .section-label {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .body-text {
+    font-size: 0.85rem;
+    line-height: 1.72;
+    color: var(--text-dim);
+  }
 
   .stats-row {
     display: grid;
-    grid-template-columns: repeat(3,1fr);
-    gap: 10px;
-    margin-bottom: 24px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
   }
-  .stat {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 8px;
+  .stat-box {
     text-align: center;
+    padding: 10px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.015);
   }
-  .stat-value { font-family: 'Share Tech Mono', monospace; font-size: 1.25rem; color: #34d399; }
-  .stat-label { font-size: 0.68rem; color: #8cc9b0; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .stat-label { font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
 
-  .section { font-size: 0.7rem; font-weight: 500; color: #34d399; letter-spacing: 1.5px; text-transform: uppercase; margin: 20px 0 10px; }
   .bases-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 8px;
   }
-  .base {
-    background: rgba(255,255,255,0.03);
+  .base-card {
+    padding: 10px 12px;
+    border-radius: 6px;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
+    background: rgba(255,255,255,0.02);
   }
-  .base-letter { font-size: 1.8rem; font-weight: 700; font-family: 'Share Tech Mono', monospace; }
+  .base-letter {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .base-name { font-size: 0.72rem; color: var(--text-dim); }
 
   .bond-row {
     display: flex;
     align-items: center;
-    gap: 12px;
-    background: rgba(255,255,255,0.03);
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 14px;
-    margin-bottom: 10px;
+    background: rgba(255,255,255,0.02);
+    margin-bottom: 8px;
+    font-size: 0.82rem;
+  }
+  .bond-pair { font-family: 'Share Tech Mono', monospace; font-weight: 600; min-width: 60px; }
+  .bond-dots { display: flex; gap: 3px; margin-left: auto; }
+  .bond-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.7;
+  }
+  .bond-count {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    min-width: 26px;
+    text-align: right;
+    font-family: 'Share Tech Mono', monospace;
   }
 
   #controls {
-    padding: 20px 28px;
+    padding: 18px 28px 24px;
     border-top: 1px solid var(--border);
-    background: rgba(5,10,6,0.6);
+    background: rgba(5,10,6,0.5);
   }
   .slider-row {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
+    gap: 10px;
+    margin-bottom: 12px;
   }
-  input[type="range"] {
+  .slider-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    min-width: 50px;
+  }
+  input[type=range] {
     flex: 1;
-    accent-color: #34d399;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
   }
+  input[type=range]::-webkit-slider-thumb {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .slider-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    min-width: 30px;
+    text-align: right;
+  }
+
   .btn-row {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 8px;
-    margin-top: 8px;
+    margin-top: 14px;
   }
-  button {
-    padding: 10px;
+  .ctrl-btn {
+    padding: 9px 4px;
     background: transparent;
-    color: #34d399;
+    color: var(--accent);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 5px;
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
     cursor: pointer;
+    transition: all 0.25s;
   }
-  button.active, button:hover {
-    background: #34d399;
+  .ctrl-btn:hover { background: rgba(52,211,153,0.1); border-color: var(--accent); }
+  .ctrl-btn.active {
+    background: var(--accent);
     color: #051a0a;
+    border-color: var(--accent);
   }
 
+  /* Sequence Ticker */
   #seqTicker {
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    height: 32px;
-    background: rgba(5,10,6,0.95);
+    height: 30px;
+    background: rgba(5,10,6,0.9);
     border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
     overflow: hidden;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 13px;
+    pointer-events: none;
   }
   #seqInner {
-    animation: ticker 28s linear infinite;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
     white-space: nowrap;
+    animation: ticker 25s linear infinite;
   }
-  @keyframes ticker { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+  @keyframes ticker {
+    from { transform: translateX(100%); }
+    to { transform: translateX(-100%); }
+  }
+  .seq-A { color: var(--A); }
+  .seq-T { color: var(--T); }
+  .seq-G { color: var(--G); }
+  .seq-C { color: var(--C); }
 </style>
 </head>
 <body>
 
 <div id="stage">
-  <canvas id="canvas"></canvas>
+  <button class="ctrl-btn" style="position:absolute;top:18px;left:18px;z-index:100;" onclick="goBack()">◀ BACK</button>
+  <canvas id="dnaCanvas"></canvas>
   <div id="tooltip"></div>
-  <div id="seqTicker"><div id="seqInner"></div></div>
+  <div id="seqTicker">
+    <div id="seqInner"></div>
+  </div>
 </div>
 
 <div id="panel">
   <div id="panelScroll">
     <div class="lang-row">
-      <div class="lang-pill active" onclick="setLang('en')" id="btnEN">EN</div>
-      <div class="lang-pill" onclick="setLang('bn')" id="btnBN">বাংলা</div>
+      <button class="lang-pill active" id="btnEN" onclick="setLang('en')">EN</button>
+      <button class="lang-pill" id="btnBN" onclick="setLang('bn')">বাংলা</button>
     </div>
 
-    <div class="title" id="title">Deoxyribonucleic Acid</div>
-    <div class="subtitle" id="subtitle">DNA — Blueprint of Life</div>
+    <div class="panel-title" id="title">Deoxyribonucleic Acid</div>
+    <div class="panel-subtitle" id="abbr">DNA — The Blueprint of Life</div>
 
     <div class="stats-row">
-      <div class="stat"><div class="stat-value">3.2B</div><div class="stat-label" id="s1">Base Pairs</div></div>
-      <div class="stat"><div class="stat-value">2nm</div><div class="stat-label" id="s2">Width</div></div>
-      <div class="stat"><div class="stat-value">10</div><div class="stat-label" id="s3">bp/Turn</div></div>
+      <div class="stat-box"><span class="stat-value">3.2B</span><span class="stat-label" id="statLbl1">Base Pairs</span></div>
+      <div class="stat-box"><span class="stat-value">2nm</span><span class="stat-label" id="statLbl2">Width</span></div>
+      <div class="stat-box"><span class="stat-value">10</span><span class="stat-label" id="statLbl3">bp / Turn</span></div>
     </div>
 
-    <div class="section" id="sec1">Chemical Bases</div>
+    <div class="divider"></div>
+    <div class="section-label" id="secBases">Chemical Bases</div>
     <div class="bases-grid">
-      <div class="base"><div class="base-letter" style="color:#34d399">A</div><div id="bA">Adenine</div></div>
-      <div class="base"><div class="base-letter" style="color:#60a5fa">T</div><div id="bT">Thymine</div></div>
-      <div class="base"><div class="base-letter" style="color:#fbbf24">G</div><div id="bG">Guanine</div></div>
-      <div class="base"><div class="base-letter" style="color:#f472b6">C</div><div id="bC">Cytosine</div></div>
+      <div class="base-card"><div class="base-letter" style="color:var(--A)">A</div><div class="base-name" id="baseA">Adenine — Purine</div></div>
+      <div class="base-card"><div class="base-letter" style="color:var(--T)">T</div><div class="base-name" id="baseT">Thymine — Pyrimidine</div></div>
+      <div class="base-card"><div class="base-letter" style="color:var(--G)">G</div><div class="base-name" id="baseG">Guanine — Purine</div></div>
+      <div class="base-card"><div class="base-letter" style="color:var(--C)">C</div><div class="base-name" id="baseC">Cytosine — Pyrimidine</div></div>
     </div>
 
-    <div class="section" id="sec2">Hydrogen Bonds</div>
-    <div class="bond-row">A — T <span style="margin-left:auto;color:#888">2 bonds</span></div>
-    <div class="bond-row">G ≡ C <span style="margin-left:auto;color:#888">3 bonds</span></div>
+    <div class="divider"></div>
+    <div class="section-label" id="secBonds">Hydrogen Bonds</div>
+    <div class="bond-row">
+      <span class="bond-pair" style="color:var(--A)">A—T</span>
+      <span class="body-text" id="bondAT">Weaker pair</span>
+      <div class="bond-dots"><div class="bond-dot"></div><div class="bond-dot"></div></div>
+      <span class="bond-count">×2</span>
+    </div>
+    <div class="bond-row">
+      <span class="bond-pair" style="color:var(--G)">G≡C</span>
+      <span class="body-text" id="bondGC">Stronger pair</span>
+      <div class="bond-dots"><div class="bond-dot"></div><div class="bond-dot"></div><div class="bond-dot"></div></div>
+      <span class="bond-count">×3</span>
+    </div>
 
-    <div class="section" id="sec3">Key Fact</div>
-    <p style="line-height:1.6;color:#a0d4c0;font-size:0.9rem" id="fact">
-      Stretched end-to-end, the DNA in one human cell is ~2 metres long — yet fits inside a 6μm nucleus.
-    </p>
+    <div class="divider"></div>
+    <div class="section-label" id="secFact">Key Fact</div>
+    <p class="body-text" id="factText">If the DNA in a single human cell were uncoiled and stretched end to end, it would span ~2 metres — yet it is packed into a nucleus just 6 micrometres wide.</p>
   </div>
 
   <div id="controls">
     <div class="slider-row">
-      <span style="width:50px;font-size:0.75rem">Speed</span>
-      <input type="range" id="speed" min="0" max="100" value="50">
-      <span id="speedVal" style="width:30px;text-align:right">50</span>
+      <span class="slider-label" id="lblSpeed">Speed</span>
+      <input type="range" id="speedSlider" min="0" max="100" value="50">
+      <span class="slider-val" id="speedVal">50</span>
     </div>
     <div class="slider-row">
-      <span style="width:50px;font-size:0.75rem">Zoom</span>
-      <input type="range" id="zoom" min="40" max="180" value="100">
-      <span id="zoomVal" style="width:40px;text-align:right">1.0x</span>
+      <span class="slider-label" id="lblZoom">Zoom</span>
+      <input type="range" id="zoomSlider" min="30" max="200" value="100">
+      <span class="slider-val" id="zoomVal">1.0×</span>
     </div>
     <div class="btn-row">
-      <button class="active" id="pauseBtn" onclick="togglePlay()">PAUSE</button>
-      <button onclick="resetView()">RESET</button>
-      <button onclick="cycleStyle()" id="styleBtn">GLOW</button>
+      <button class="ctrl-btn active" id="btnPause" onclick="togglePause()">⏸ PAUSE</button>
+      <button class="ctrl-btn" onclick="resetView()">↺ RESET</button>
+      <button class="ctrl-btn" id="btnStyle" onclick="cycleStyle()">◈ GLOW</button>
     </div>
   </div>
 </div>
 
 <script>
-// ============== VARIABLES ==============
-const canvas = document.getElementById('canvas');
+// ==================== MAIN SCRIPT ====================
+const canvas = document.getElementById('dnaCanvas');
 const ctx = canvas.getContext('2d');
-const tooltip = document.getElementById('tooltip');
+const tip = document.getElementById('tooltip');
 
-let rotation = 0;
-let isPlaying = true;
-let zoom = 1;
-let dragY = 0;
-let isDragging = false;
-let lastY = 0;
-let styleMode = 0; // 0=glow, 1=flat, 2=wire
-let hovered = -1;
+let rotation = 0, isPlaying = true, zoom = 1.0, dragY = 0;
+let isDragging = false, lastMouseY = 0;
+let styleMode = 0; // 0 = glow, 1 = flat, 2 = wire
+let hoveredPair = -1;
 let lang = 'en';
 
-const colors = {A:'#34d399', T:'#60a5fa', G:'#fbbf24', C:'#f472b6'};
-const pairs = [['A','T'],['G','C'],['T','A'],['C','G']];
+const BASE_COLORS = { A:'#34d399', T:'#60a5fa', G:'#fbbf24', C:'#f472b6' };
+const PAIRS = [['A','T'],['T','A'],['G','C'],['C','G'],['A','T'],['G','C'],['T','A'],['C','G']];
 
-// ============== RESIZE ==============
+const C = { /* same content object as before */ 
+  en: {
+    title: 'Deoxyribonucleic Acid', abbr: 'DNA — The Blueprint of Life',
+    statLbl1: 'Base Pairs', statLbl2: 'Width', statLbl3: 'bp / Turn',
+    secBases: 'Chemical Bases',
+    baseA: 'Adenine — Purine', baseT: 'Thymine — Pyrimidine',
+    baseG: 'Guanine — Purine', baseC: 'Cytosine — Pyrimidine',
+    secBonds: 'Hydrogen Bonds',
+    bondAT: 'Weaker pair', bondGC: 'Stronger pair',
+    secFact: 'Key Fact',
+    factText: "If the DNA in a single human cell were uncoiled and stretched end to end, it would span ~2 metres — yet it is packed into a nucleus just 6 micrometres wide.",
+    lblSpeed: 'Speed', lblZoom: 'Zoom'
+  },
+  bn: {
+    title: 'ডিঅক্সিরাইবোনিউক্লিক অ্যাসিড', abbr: 'ডিএনএ — জীবনের নকশা',
+    statLbl1: 'বেস পেয়ার', statLbl2: 'প্রস্থ', statLbl3: 'bp / ঘূর্ণন',
+    secBases: 'রাসায়নিক ক্ষারক',
+    baseA: 'অ্যাডেনিন — পিউরিন', baseT: 'থাইমিন — পাইরিমিডিন',
+    baseG: 'গুয়ানিন — পিউরিন', baseC: 'সাইটোসিন — পাইরিমিডিন',
+    secBonds: 'হাইড্রোজেন বন্ধন',
+    bondAT: 'দুর্বলতর জোড়', bondGC: 'শক্তিশালী জোড়',
+    secFact: 'গুরুত্বপূর্ণ তথ্য',
+    factText: "একটি মানব কোষের ডিএনএ যদি খুলে সোজা করা হতো, তবে তা প্রায় ২ মিটার দীর্ঘ হতো — অথচ এটি মাত্র ৬ মাইক্রোমিটার চওড়া নিউক্লিয়াসে গুটানো থাকে।",
+    lblSpeed: 'গতি', lblZoom: 'জুম'
+  }
+};
+
+function setLang(l) {
+  lang = l;
+  const d = C[l];
+  document.getElementById('btnEN').classList.toggle('active', l==='en');
+  document.getElementById('btnBN').classList.toggle('active', l==='bn');
+  Object.keys(d).forEach(key => {
+    const el = document.getElementById(key);
+    if (el) el.textContent = d[key];
+  });
+}
+
+// Canvas Setup
 function resize() {
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = canvas.clientWidth * dpr;
-  canvas.height = canvas.clientHeight * dpr;
+  canvas.width = canvas.parentElement.clientWidth * dpr;
+  canvas.height = canvas.parentElement.clientHeight * dpr;
   ctx.scale(dpr, dpr);
 }
 window.addEventListener('resize', resize);
 resize();
 
-// ============== DRAW ==============
-function draw() {
-  ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
-  const w = canvas.clientWidth;
-  const h = canvas.clientHeight;
-  const cx = w / 2;
-  const cy = h / 2 + dragY;
+function W() { return canvas.width / (window.devicePixelRatio || 1); }
+function H() { return canvas.height / (window.devicePixelRatio || 1); }
 
-  const radius = 85 * zoom;
-  const spacing = 26 * zoom;
+// Draw Function
+function draw() {
+  ctx.clearRect(0, 0, W(), H());
+  const cx = W() / 2;
+  const cy = H() / 2 + dragY;
+  const radius = 90 * zoom;
+  const spacing = 28 * zoom;
+  const nodeR = 7 * zoom;
+  const ROWS = 28;
 
   // Backbones
   for (let side = 0; side < 2; side++) {
     ctx.beginPath();
-    for (let i = -25; i <= 25; i++) {
-      const angle = rotation + i * 0.4 + (side * Math.PI);
-      const x = cx + Math.sin(angle) * radius;
+    for (let i = -ROWS; i <= ROWS; i++) {
+      const a = rotation + i * 0.42 + (side ? Math.PI : 0);
+      const x = cx + Math.sin(a) * radius;
       const y = cy + i * spacing;
-      if (i === -25) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+      i === -ROWS ? ctx.moveTo(x, y) : ctx.quadraticCurveTo(x, y, x, y);
     }
-    ctx.strokeStyle = 'rgba(52,211,153,0.25)';
-    ctx.lineWidth = 3 * zoom;
+    ctx.strokeStyle = 'rgba(52,211,153,0.18)';
+    ctx.lineWidth = 2.2 * zoom;
     ctx.stroke();
   }
 
-  // Base pairs
-  const currentNodes = [];
-  for (let i = -18; i < 18; i++) {
+  const nodes = [];
+  for (let i = -ROWS/2; i < ROWS/2; i++) {
     const y = cy + i * spacing;
-    const angle = rotation + i * 0.4;
+    if (y < -nodeR || y > H() + nodeR) continue;
+
+    const angle = rotation + i * 0.42;
     const x1 = cx + Math.sin(angle) * radius;
     const x2 = cx + Math.sin(angle + Math.PI) * radius;
+    const z1 = Math.cos(angle);
 
-    const pair = pairs[Math.abs(i) % pairs.length];
-    const bonds = (pair[0] === 'G' || pair[0] === 'C') ? 3 : 2;
+    const pIdx = Math.abs(i) % PAIRS.length;
+    const [b1, b2] = PAIRS[pIdx];
+    const bonds = (b1 === 'G' || b1 === 'C') ? 3 : 2;
+    const isHover = (i === hoveredPair);
 
     // Hydrogen bonds
-    for (let b = 0; b < bonds; b++) {
-      const offset = (b - (bonds-1)/2) * 5 * zoom;
+    for (let j = 0; j < bonds; j++) {
+      const off = (j - (bonds-1)/2) * 5 * zoom;
       ctx.save();
-      ctx.setLineDash([3,5]);
-      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-      ctx.lineWidth = 1.2;
+      ctx.setLineDash([4*zoom, 4*zoom]);
+      ctx.lineWidth = 0.9;
+      ctx.strokeStyle = `rgba(255,255,255,${0.25 + Math.abs(z1)*0.3 + (isHover?0.2:0)})`;
       ctx.beginPath();
-      ctx.moveTo(x1, y + offset);
-      ctx.lineTo(x2, y + offset);
+      ctx.moveTo(x1, y + off);
+      ctx.lineTo(x2, y + off);
       ctx.stroke();
       ctx.restore();
     }
 
-    drawBase(x1, y, colors[pair[0]], pair[0]);
-    drawBase(x2, y, colors[pair[1]], pair[1]);
+    drawNode(x1, y, BASE_COLORS[b1], z1, nodeR, isHover, b1);
+    drawNode(x2, y, BASE_COLORS[b2], Math.cos(angle+Math.PI), nodeR, isHover, b2);
 
-    currentNodes.push({x1, x2, y, pair, bonds});
+    nodes.push({i, x1, x2, y, b1, b2, bonds});
   }
-  return currentNodes;
+  return nodes;
 }
 
-function drawBase(x, y, color, letter) {
-  const size = 9 * zoom;
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(x, y, size, 0, Math.PI*2);
-  ctx.fill();
+function drawNode(x, y, color, z, r, hover, label) {
+  const size = r * (0.8 + z * 0.35 + (hover ? 0.25 : 0));
+  const alpha = Math.max(0.3, (z + 1.5) / 2.5);
 
-  ctx.fillStyle = '#050a06';
-  ctx.font = `bold ${size+2}px Share Tech Mono`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(letter, x, y);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  if (styleMode === 2) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI*2);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI*2);
+    ctx.fill();
+
+    if (styleMode === 0) { // glow
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = color;
+      ctx.globalAlpha = alpha * 0.35;
+      ctx.beginPath();
+      ctx.arc(x, y, size * 1.7, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    if (size > 6) {
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#050a06';
+      ctx.font = `bold ${Math.round(size*1.15)}px 'Share Tech Mono', monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, x, y);
+    }
+  }
+  ctx.restore();
 }
 
-// ============== ANIMATION LOOP ==============
 let nodes = [];
 function loop() {
   nodes = draw();
-  if (isPlaying) rotation += 0.014 * (document.getElementById('speed').value / 50);
+  if (isPlaying) rotation += 0.012 * (document.getElementById('speedSlider').value / 50);
   requestAnimationFrame(loop);
 }
 loop();
 
-// ============== CONTROLS ==============
-document.getElementById('speed').addEventListener('input', function() {
-  document.getElementById('speedVal').textContent = this.value;
+// Controls
+const speedSlider = document.getElementById('speedSlider');
+const zoomSlider = document.getElementById('zoomSlider');
+
+speedSlider.addEventListener('input', () => document.getElementById('speedVal').textContent = speedSlider.value);
+zoomSlider.addEventListener('input', () => {
+  zoom = zoomSlider.value / 100;
+  document.getElementById('zoomVal').textContent = zoom.toFixed(1) + '×';
 });
 
-document.getElementById('zoom').addEventListener('input', function() {
-  zoom = this.value / 100;
-  document.getElementById('zoomVal').textContent = zoom.toFixed(1) + 'x';
-});
-
-function togglePlay() {
+function togglePause() {
   isPlaying = !isPlaying;
-  const btn = document.getElementById('pauseBtn');
-  btn.textContent = isPlaying ? 'PAUSE' : 'PLAY';
+  const btn = document.getElementById('btnPause');
+  btn.textContent = isPlaying ? '⏸ PAUSE' : '▶ PLAY';
   btn.classList.toggle('active', isPlaying);
 }
 
 function resetView() {
-  rotation = 0;
-  dragY = 0;
-  zoom = 1;
-  document.getElementById('zoom').value = 100;
-  document.getElementById('speed').value = 50;
-  document.getElementById('zoomVal').textContent = '1.0x';
+  rotation = 0; dragY = 0; zoom = 1;
+  zoomSlider.value = 100;
+  speedSlider.value = 50;
+  document.getElementById('zoomVal').textContent = '1.0×';
+  document.getElementById('speedVal').textContent = '50';
 }
 
 function cycleStyle() {
   styleMode = (styleMode + 1) % 3;
-  document.getElementById('styleBtn').textContent = ['GLOW','FLAT','WIRE'][styleMode];
+  const names = ['GLOW', 'FLAT', 'WIRE'];
+  document.getElementById('btnStyle').textContent = '◈ ' + names[styleMode];
 }
 
-// ============== INTERACTION ==============
-canvas.addEventListener('mousedown', e => { isDragging = true; lastY = e.clientY; });
+// Interaction
+canvas.addEventListener('mousedown', e => { isDragging = true; lastMouseY = e.clientY; });
 window.addEventListener('mousemove', e => {
-  if (isDragging) {
-    dragY += (e.clientY - lastY);
-    lastY = e.clientY;
-  }
+  if (isDragging) dragY += e.clientY - lastMouseY, lastMouseY = e.clientY;
 
   const rect = canvas.getBoundingClientRect();
   const mx = e.clientX - rect.left;
   const my = e.clientY - rect.top;
 
-  let found = false;
-  for (let n of nodes) {
-    if (Math.hypot(mx - n.x1, my - n.y) < 20 || Math.hypot(mx - n.x2, my - n.y) < 20) {
-      const base = Math.hypot(mx - n.x1, my - n.y) < Math.hypot(mx - n.x2, my - n.y) ? n.pair[0] : n.pair[1];
-      tooltip.textContent = `${base} — ${n.bonds} Hydrogen Bonds`;
-      tooltip.style.left = (e.clientX - rect.left + 20) + 'px';
-      tooltip.style.top = (e.clientY - rect.top - 10) + 'px';
-      tooltip.style.opacity = 1;
-      found = true;
+  let found = -99;
+  for (const n of nodes) {
+    if (Math.hypot(mx - n.x1, my - n.y) < 16*zoom || Math.hypot(mx - n.x2, my - n.y) < 16*zoom) {
+      found = n.i;
+      const base = Math.hypot(mx - n.x1, my - n.y) < Math.hypot(mx - n.x2, my - n.y) ? n.b1 : n.b2;
+      tip.textContent = `${base === 'A' ? 'Adenine' : base === 'T' ? 'Thymine' : base === 'G' ? 'Guanine' : 'Cytosine'} (${base}) · ${n.bonds} H-bonds`;
+      tip.style.left = (e.clientX - rect.left + 15) + 'px';
+      tip.style.top = (e.clientY - rect.top - 12) + 'px';
+      tip.style.opacity = '1';
       break;
     }
   }
-  if (!found) tooltip.style.opacity = 0;
+  if (found === -99) tip.style.opacity = '0';
+  hoveredPair = found;
 });
-
 window.addEventListener('mouseup', () => isDragging = false);
 
-// Wheel Zoom
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
-  zoom = Math.max(0.4, Math.min(2.2, zoom + (e.deltaY < 0 ? 0.08 : -0.08)));
-  document.getElementById('zoom').value = Math.round(zoom * 100);
-  document.getElementById('zoomVal').textContent = zoom.toFixed(1) + 'x';
+  zoom = Math.min(2.5, Math.max(0.3, zoom + (e.deltaY < 0 ? 0.07 : -0.07)));
+  zoomSlider.value = Math.round(zoom * 100);
+  document.getElementById('zoomVal').textContent = zoom.toFixed(1) + '×';
+}, {passive: false});
+
+// Touch support
+let lastTouchY = 0;
+canvas.addEventListener('touchstart', e => lastTouchY = e.touches[0].clientY);
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  dragY += e.touches[0].clientY - lastTouchY;
+  lastTouchY = e.touches[0].clientY;
 }, {passive: false});
 
 // Sequence Ticker
-const seq = "ATGCCGTAGCTAGCTAGCATCGATCGTAGCTAGCTAGCATGCGATCGATCG";
-document.getElementById('seqInner').innerHTML = seq.repeat(4).split('').map(c => `<span style="color:${colors[c]||'#aaa'}">${c}</span>`).join('');
+function buildTicker() {
+  const seq = 'ATGCGATCGTAGCTAGCTAGCATCGATCGATGCATCGTAGCATGCAATCGATCGATGC';
+  let html = '';
+  for (let char of seq.repeat(3)) {
+    html += `<span class="seq-${char}">${char}</span>`;
+  }
+  document.getElementById('seqInner').innerHTML = html;
+}
+buildTicker();
 
-// Language (basic)
-function setLang(l) {
-  lang = l;
-  document.getElementById('btnEN').classList.toggle('active', l==='en');
-  document.getElementById('btnBN').classList.toggle('active', l==='bn');
-  // You can expand this later
+function goBack() {
+  window.location.href = 'index.html'; // change if needed
 }
 </script>
 </body>

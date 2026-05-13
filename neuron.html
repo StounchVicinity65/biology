@@ -1,1 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neural Impulse Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#050a06;font-family:'Share Tech Mono',monospace;overflow:hidden;width:100vw;height:100vh;display:flex;flex-direction:column}
+#root{display:flex;flex-direction:column;width:100%;height:100%;background:#050a06;overflow:hidden}
+#neuron-stage{flex:1;position:relative;background:#050a06;min-height:0}
+canvas{display:block;width:100%;height:100%}
+#bottom{display:flex;height:280px;border-top:1px solid rgba(52,211,153,.1);flex-shrink:0}
+#chart-panel{flex:1;position:relative;background:#040908;padding:14px 16px 10px;overflow:hidden}
+#info-panel{width:260px;background:#070d08;border-left:1px solid rgba(52,211,153,.1);display:flex;flex-direction:column;flex-shrink:0}
+#info-scroll{flex:1;overflow-y:auto;padding:14px 14px 10px;scrollbar-width:thin;scrollbar-color:#34d399 transparent}
+#info-scroll::-webkit-scrollbar{width:2px}
+#info-scroll::-webkit-scrollbar-thumb{background:#34d399}
+.phase-name{font-size:15px;font-weight:600;color:#34d399;margin-bottom:3px;letter-spacing:-.01em}
+.phase-sub{font-size:9px;color:rgba(52,211,153,.4);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+.phase-desc{font-size:10px;line-height:1.7;color:rgba(180,240,210,.55);margin-bottom:10px}
+.ion-row{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:4px;border:.5px solid rgba(52,211,153,.12);background:rgba(52,211,153,.03);margin-bottom:5px;font-size:10px;color:rgba(180,240,210,.6)}
+.ion-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ion-val{margin-left:auto;font-size:9px;color:rgba(52,211,153,.8)}
+.sec-lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(52,211,153,.5);margin:10px 0 6px;display:flex;align-items:center;gap:6px}
+.sec-lbl::after{content:'';flex:1;height:1px;background:rgba(52,211,153,.1)}
+#ctrls{padding:10px 14px 14px;border-top:.5px solid rgba(52,211,153,.1);background:rgba(5,10,6,.6)}
+.srow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.slbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(180,240,210,.35);min-width:50px}
+input[type=range]{flex:1;height:3px;-webkit-appearance:none;appearance:none;background:rgba(52,211,153,.2);border-radius:2px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#34d399;cursor:pointer}
+.sval{font-size:9px;color:#34d399;min-width:26px;text-align:right}
+.brow{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
+.cb{padding:8px 2px;background:transparent;color:#34d399;border:.5px solid rgba(52,211,153,.25);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.05em;cursor:pointer;transition:all .2s;text-align:center}
+.cb:hover{background:rgba(52,211,153,.12);border-color:#34d399}
+.cb.on{background:#34d399;color:#051a0a;border-color:#34d399}
+#chart-title{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(52,211,153,.45);margin-bottom:6px}
+.y-lbl{font-size:9px;color:rgba(180,240,210,.3);text-align:right;width:28px;font-family:'Share Tech Mono',monospace}
+</style>
+</head>
+<body>
 
+<div id="root">
+  <div id="neuron-stage">
+    <canvas id="nc"></canvas>
+  </div>
+  <div id="bottom">
+    <div id="chart-panel">
+      <div id="chart-title">Action potential — membrane voltage (mV)</div>
+      <div style="position:relative;display:flex;align-items:flex-start;gap:0">
+        <div style="display:flex;flex-direction:column;justify-content:space-between;height:192px;padding-top:4px;flex-shrink:0">
+          <span class="y-lbl">+40</span>
+          <span class="y-lbl">0</span>
+          <span class="y-lbl">−55</span>
+          <span class="y-lbl">−70</span>
+        </div>
+        <canvas id="ac" style="flex:1;height:200px;display:block"></canvas>
+      </div>
+    </div>
+    <div id="info-panel">
+      <div id="info-scroll">
+        <div class="phase-name" id="ph-name">Resting state</div>
+        <div class="phase-sub" id="ph-sub">−70 mV · polarised</div>
+        <div class="phase-desc" id="ph-desc">The neuron is at rest. Na⁺/K⁺ pumps maintain a negative interior charge. Voltage-gated Na⁺ channels are closed; leak K⁺ channels are open.</div>
+
+        <div class="sec-lbl">Ion concentrations</div>
+        <div class="ion-row"><div class="ion-dot" style="background:#60a5fa"></div><span>Na⁺ outside</span><span class="ion-val" id="na-val">High</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#34d399"></div><span>K⁺ inside</span><span class="ion-val" id="k-val">High</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#f472b6"></div><span>Cl⁻ outside</span><span class="ion-val" id="cl-val">High</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#fbbf24"></div><span>Membrane (mV)</span><span class="ion-val" id="vm-val">−70</span></div>
+
+        <div class="sec-lbl">Channel states</div>
+        <div class="ion-row"><div class="ion-dot" style="background:#60a5fa"></div><span>Na⁺ channels</span><span class="ion-val" id="na-ch">Closed</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#34d399"></div><span>K⁺ channels</span><span class="ion-val" id="k-ch">Open</span></div>
+
+        <div class="sec-lbl">Legend</div>
+        <div class="ion-row"><div class="ion-dot" style="background:#34d399"></div><span>Cell membrane / axon</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#60a5fa"></div><span>Myelin sheath</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#fbbf24"></div><span>Impulse — depolarised</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#f472b6"></div><span>Nucleus</span></div>
+      </div>
+      <div id="ctrls">
+        <div class="srow">
+          <span class="slbl">Speed</span>
+          <input type="range" id="spd" min="5" max="60" value="20" step="1">
+          <span class="sval" id="spdv">1.0x</span>
+        </div>
+        <div class="srow">
+          <span class="slbl">Stimuli</span>
+          <input type="range" id="stim" min="1" max="4" value="1" step="1">
+          <span class="sval" id="stimv">1</span>
+        </div>
+        <div class="brow">
+          <button class="cb on" id="bPlay" onclick="togglePlay()">Pause</button>
+          <button class="cb" onclick="fireNow()">Fire!</button>
+          <button class="cb" onclick="resetSim()">Reset</button>
+          <button class="cb on" id="bLabel" onclick="toggleLabels()">Labels</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const nc  = document.getElementById('nc');
+const nctx = nc.getContext('2d');
+const ac  = document.getElementById('ac');
+const actx = ac.getContext('2d');
+const stage = document.getElementById('neuron-stage');
+const dpr = window.devicePixelRatio || 1;
+
+let playing = true, showLabels = true;
+let impulses = [], autoFire = 0;
+const APHistory = new Array(300).fill(-70);
+
+const AXON_SEGS = 40;
+
+const PHASES = [
+  {name:'Resting state',      sub:'−70 mV · polarised',
+   desc:'The neuron is at rest. Na⁺/K⁺ pumps maintain a negative interior charge. Voltage-gated Na⁺ channels are closed; leak K⁺ channels are open.',
+   naV:'High', kV:'High', clV:'High', vm:'−70', naCh:'Closed', kCh:'Open'},
+  {name:'Depolarisation',     sub:'+40 mV · Na⁺ influx',
+   desc:'Stimulus exceeds threshold (−55 mV). Voltage-gated Na⁺ channels snap open. Na⁺ floods inward, reversing charge to +40 mV.',
+   naV:'Rushing in', kV:'High', clV:'High', vm:'+40', naCh:'Open', kCh:'Closed'},
+  {name:'Repolarisation',     sub:'−70 mV · K⁺ efflux',
+   desc:'Na⁺ channels inactivate. K⁺ channels open wide. K⁺ floods outward, rapidly restoring negative charge.',
+   naV:'Closed', kV:'Rushing out', clV:'High', vm:'−70', naCh:'Inactive', kCh:'Open'},
+  {name:'Hyperpolarisation',  sub:'−90 mV · overshoot',
+   desc:'K⁺ channels stay open too long, briefly driving membrane below −70 mV. The cell is refractory and cannot fire again.',
+   naV:'Low', kV:'Excess out', clV:'High', vm:'−90', naCh:'Closed', kCh:'Slow close'},
+  {name:'Refractory period',  sub:'−70 mV · resetting',
+   desc:'Na⁺/K⁺ pumps restore ion concentrations. Membrane returns to −70 mV resting potential, ready to fire again.',
+   naV:'Restoring', kV:'Restoring', clV:'High', vm:'−70', naCh:'Closed', kCh:'Closed'},
+];
+
+const AP_CURVE = [
+  {t:0,v:-70},{t:.05,v:-70},{t:.1,v:-55},{t:.15,v:0},{t:.2,v:40},
+  {t:.3,v:40},{t:.38,v:10},{t:.45,v:-50},{t:.52,v:-70},{t:.6,v:-90},
+  {t:.72,v:-90},{t:.82,v:-75},{t:.9,v:-70},{t:1,v:-70}
+];
+
+function apVoltage(tt) {
+  tt = ((tt % 1) + 1) % 1;
+  for (let i = 1; i < AP_CURVE.length; i++) {
+    if (tt <= AP_CURVE[i].t) {
+      const a = AP_CURVE[i-1], b = AP_CURVE[i];
+      const f = (tt - a.t) / (b.t - a.t);
+      return a.v + (b.v - a.v) * f;
+    }
+  }
+  return -70;
+}
+
+function getPhaseIdx(pos) {
+  const tt = ((pos % 1) + 1) % 1;
+  if (tt < .10) return 0;
+  if (tt < .35) return 1;
+  if (tt < .55) return 2;
+  if (tt < .75) return 3;
+  return 4;
+}
+
+const dendrites = Array.from({length:7}, (_,i) => {
+  const a = Math.PI * .55 + i * (Math.PI * .75 / 6);
+  return {
+    a, len: 38 + Math.random() * 28,
+    sub: Math.random() < .5
+      ? {da: a - .3 + Math.random()*.2, dlen: 16 + Math.random()*14}
+      : null
+  };
+});
+
+const myelinSegs = [];
+for (let i = 3; i < AXON_SEGS - 3; i++) {
+  if (i % 4 === 3) myelinSegs.push(i);
+}
+
+function NW() { return stage.clientWidth; }
+function NH() { return stage.clientHeight; }
+function AW() { return ac.parentElement.clientWidth - 36; }
+
+function resizeAll() {
+  nc.width  = stage.clientWidth  * dpr;
+  nc.height = stage.clientHeight * dpr;
+  nctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const acW = Math.max(10, ac.parentElement.clientWidth - 36);
+  ac.width  = acW * dpr;
+  ac.height = 200 * dpr;
+  actx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resizeAll);
+resizeAll();
+
+function getLayout() {
+  const w = NW(), h = NH(), cy = h / 2;
+  const bodyX = 90, bodyR = 30;
+  const axonStart = bodyX + bodyR;
+  const axonEnd   = w - 90;
+  const pts = [];
+  for (let i = 0; i <= AXON_SEGS; i++) {
+    pts.push({ x: axonStart + i * (axonEnd - axonStart) / AXON_SEGS, y: cy });
+  }
+  const branches = [
+    {dx:55, dy:-44}, {dx:55, dy:-16},
+    {dx:55, dy: 16}, {dx:55, dy: 44}
+  ];
+  return {w, h, cy, bodyX, bodyR, axonStart, axonEnd, pts, branches};
+}
+
+function drawNeuron() {
+  const {w, h, cy, bodyX, bodyR, axonStart, axonEnd, pts, branches} = getLayout();
+  nctx.clearRect(0, 0, w, h);
+
+  // Ambient rings
+  nctx.strokeStyle = 'rgba(52,211,153,.05)';
+  nctx.lineWidth = 1;
+  for (let i = 0; i < 7; i++) {
+    nctx.beginPath();
+    nctx.arc(bodyX, cy, bodyR + 22 + i * 16, 0, Math.PI * 2);
+    nctx.stroke();
+  }
+
+  // Dendrites
+  dendrites.forEach(d => {
+    const x0 = bodyX + Math.cos(d.a) * bodyR;
+    const y0 = cy    + Math.sin(d.a) * bodyR;
+    const x1 = bodyX + Math.cos(d.a) * (bodyR + d.len);
+    const y1 = cy    + Math.sin(d.a) * (bodyR + d.len);
+    nctx.strokeStyle = 'rgba(52,211,153,.22)';
+    nctx.lineWidth = 1.2;
+    nctx.beginPath(); nctx.moveTo(x0, y0); nctx.lineTo(x1, y1); nctx.stroke();
+    if (d.sub) {
+      const mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+      nctx.beginPath(); nctx.moveTo(mx, my);
+      nctx.lineTo(mx + Math.cos(d.sub.da) * d.sub.dlen,
+                  my + Math.sin(d.sub.da) * d.sub.dlen);
+      nctx.stroke();
+    }
+  });
+  if (showLabels) {
+    nctx.font = '9px Share Tech Mono,monospace';
+    nctx.fillStyle = 'rgba(52,211,153,.4)';
+    nctx.textAlign = 'right';
+    nctx.fillText('dendrites', bodyX - bodyR - 6, cy - 10);
+  }
+
+  // Axon backbone
+  nctx.strokeStyle = 'rgba(52,211,153,.38)';
+  nctx.lineWidth = 5;
+  nctx.lineCap = 'round';
+  nctx.beginPath(); nctx.moveTo(axonStart, cy); nctx.lineTo(axonEnd, cy); nctx.stroke();
+  nctx.lineCap = 'butt';
+
+  // Ion channel dots (show polarity)
+  const dotSpacing = 20;
+  for (let x = axonStart + 6; x < axonEnd - 6; x += dotSpacing) {
+    const hasImpNear = impulses.some(im => {
+      const ipx = axonStart + im.pos * (axonEnd - axonStart);
+      return Math.abs(ipx - x) < 32;
+    });
+    nctx.fillStyle = hasImpNear ? 'rgba(96,165,250,.7)' : 'rgba(52,211,153,.15)';
+    nctx.beginPath(); nctx.arc(x, cy - 9, 1.5, 0, Math.PI * 2); nctx.fill();
+    nctx.beginPath(); nctx.arc(x, cy + 9, 1.5, 0, Math.PI * 2); nctx.fill();
+  }
+
+  // Myelin sheaths
+  myelinSegs.forEach((mi, idx) => {
+    const seg = pts[mi + 1];
+    nctx.strokeStyle = 'rgba(96,165,250,.5)';
+    nctx.lineWidth = 10;
+    nctx.lineCap = 'round';
+    nctx.beginPath(); nctx.moveTo(seg.x - 13, cy); nctx.lineTo(seg.x + 13, cy); nctx.stroke();
+    nctx.lineCap = 'butt';
+    if (showLabels && idx === 1) {
+      nctx.font = '9px Share Tech Mono,monospace';
+      nctx.fillStyle = 'rgba(96,165,250,.55)';
+      nctx.textAlign = 'center';
+      nctx.fillText('myelin sheath', seg.x, cy - 20);
+    }
+  });
+
+  // Nodes of Ranvier markers
+  myelinSegs.forEach(mi => {
+    const seg = pts[mi + 1];
+    nctx.strokeStyle = 'rgba(52,211,153,.5)';
+    nctx.lineWidth = 1;
+    nctx.beginPath(); nctx.arc(seg.x - 14, cy, 3, 0, Math.PI * 2); nctx.stroke();
+    nctx.beginPath(); nctx.arc(seg.x + 14, cy, 3, 0, Math.PI * 2); nctx.stroke();
+  });
+
+  // Soma body
+  nctx.fillStyle = 'rgba(52,211,153,.08)';
+  nctx.beginPath(); nctx.arc(bodyX, cy, bodyR, 0, Math.PI * 2); nctx.fill();
+  nctx.strokeStyle = 'rgba(52,211,153,.75)';
+  nctx.lineWidth = 1.5;
+  nctx.beginPath(); nctx.arc(bodyX, cy, bodyR, 0, Math.PI * 2); nctx.stroke();
+
+  // Nucleus
+  nctx.fillStyle = 'rgba(244,114,182,.08)';
+  nctx.strokeStyle = 'rgba(244,114,182,.55)';
+  nctx.lineWidth = 1;
+  nctx.setLineDash([3, 3]);
+  nctx.beginPath(); nctx.arc(bodyX, cy, 14, 0, Math.PI * 2); nctx.fill(); nctx.stroke();
+  nctx.setLineDash([]);
+
+  if (showLabels) {
+    nctx.font = '9px Share Tech Mono,monospace';
+    nctx.textAlign = 'center';
+    nctx.fillStyle = 'rgba(52,211,153,.5)';
+    nctx.fillText('soma', bodyX, cy + bodyR + 13);
+    nctx.fillStyle = 'rgba(244,114,182,.5)';
+    nctx.fillText('nucleus', bodyX, cy + 5);
+    nctx.fillStyle = 'rgba(52,211,153,.4)';
+    nctx.fillText('axon', axonStart + (axonEnd - axonStart) / 2, cy + 20);
+  }
+
+  // Synaptic terminals
+  branches.forEach((b, bi) => {
+    nctx.strokeStyle = 'rgba(52,211,153,.4)';
+    nctx.lineWidth = 1.5;
+    nctx.beginPath();
+    nctx.moveTo(axonEnd, cy);
+    nctx.quadraticCurveTo(axonEnd + b.dx * .35, cy + b.dy * .3,
+                           axonEnd + b.dx, cy + b.dy);
+    nctx.stroke();
+
+    // Bulb
+    nctx.fillStyle = 'rgba(52,211,153,.55)';
+    nctx.beginPath();
+    nctx.arc(axonEnd + b.dx, cy + b.dy, 5, 0, Math.PI * 2);
+    nctx.fill();
+
+    // Vesicle release if impulse near end
+    const firing = impulses.some(im => im.pos > .88);
+    if (firing && Math.random() < .35) {
+      for (let v = 0; v < 3; v++) {
+        nctx.globalAlpha = .6;
+        nctx.fillStyle = '#fbbf24';
+        nctx.beginPath();
+        nctx.arc(axonEnd + b.dx + 8 + Math.random() * 14,
+                 cy + b.dy + Math.random() * 12 - 6, 2, 0, Math.PI * 2);
+        nctx.fill();
+        nctx.globalAlpha = 1;
+      }
+    }
+    if (showLabels && bi === 0) {
+      nctx.font = '9px Share Tech Mono,monospace';
+      nctx.fillStyle = 'rgba(52,211,153,.4)';
+      nctx.textAlign = 'left';
+      nctx.fillText('synaptic terminals', axonEnd + b.dx + 8, cy + b.dy - 4);
+    }
+  });
+
+  // Impulse pulses
+  impulses.forEach(imp => {
+    const px = axonStart + imp.pos * (axonEnd - axonStart);
+    const phI = getPhaseIdx(imp.pos);
+    const colors = ['#34d399', '#60a5fa', '#fbbf24', '#f472b6', '#a78bfa'];
+    const col = colors[phI];
+
+    // Wake trail
+    nctx.globalAlpha = .12;
+    nctx.fillStyle = col;
+    nctx.beginPath(); nctx.arc(px - 20, cy, 20, 0, Math.PI * 2); nctx.fill();
+    nctx.globalAlpha = .2;
+    nctx.beginPath(); nctx.arc(px, cy, 24, 0, Math.PI * 2); nctx.fill();
+    nctx.globalAlpha = .4;
+    nctx.beginPath(); nctx.arc(px, cy, 14, 0, Math.PI * 2); nctx.fill();
+    nctx.globalAlpha = 1;
+    nctx.fillStyle = col;
+    nctx.beginPath(); nctx.arc(px, cy, 6, 0, Math.PI * 2); nctx.fill();
+
+    // Radial spokes
+    nctx.strokeStyle = col;
+    nctx.lineWidth = 1;
+    nctx.globalAlpha = .3;
+    for (let k = 0; k < 6; k++) {
+      const a = (k / 6) * Math.PI * 2;
+      nctx.beginPath();
+      nctx.moveTo(px + Math.cos(a) * 8, cy + Math.sin(a) * 8);
+      nctx.lineTo(px + Math.cos(a) * 18, cy + Math.sin(a) * 18);
+      nctx.stroke();
+    }
+    nctx.globalAlpha = 1;
+  });
+}
+
+function drawAPChart() {
+  const w = Math.max(10, AW()), h = 200;
+  actx.clearRect(0, 0, w, h);
+  const pad = {l: 4, r: 10, t: 8, b: 22};
+  const cw = w - pad.l - pad.r;
+  const ch = h - pad.t - pad.b;
+  const vMin = -100, vMax = 55, vRange = vMax - vMin;
+
+  function yp(v) { return pad.t + ch * (1 - (v - vMin) / vRange); }
+  function xp(i) { return pad.l + i * (cw / (APHistory.length - 1)); }
+
+  // Grid lines
+  actx.strokeStyle = 'rgba(52,211,153,.06)';
+  actx.lineWidth = .5;
+  [-70, -55, 0, 40].forEach(v => {
+    actx.beginPath(); actx.moveTo(pad.l, yp(v)); actx.lineTo(pad.l + cw, yp(v)); actx.stroke();
+  });
+
+  // Left axis
+  actx.strokeStyle = 'rgba(52,211,153,.14)';
+  actx.lineWidth = .5;
+  actx.beginPath(); actx.moveTo(pad.l, pad.t); actx.lineTo(pad.l, pad.t + ch); actx.stroke();
+
+  // Threshold marker
+  actx.strokeStyle = 'rgba(251,191,36,.18)';
+  actx.lineWidth = .8;
+  actx.setLineDash([3, 7]);
+  actx.beginPath(); actx.moveTo(pad.l, yp(-55)); actx.lineTo(pad.l + cw, yp(-55)); actx.stroke();
+  actx.setLineDash([]);
+  actx.font = '8px Share Tech Mono,monospace';
+  actx.fillStyle = 'rgba(251,191,36,.5)';
+  actx.textAlign = 'left';
+  actx.fillText('threshold', pad.l + 4, yp(-55) - 3);
+
+  // Voltage curve
+  actx.lineWidth = 1.8;
+  actx.beginPath();
+  APHistory.forEach((v, i) => {
+    const x = xp(i), y = yp(v);
+    i === 0 ? actx.moveTo(x, y) : actx.lineTo(x, y);
+  });
+  const grad = actx.createLinearGradient(pad.l, 0, pad.l + cw, 0);
+  grad.addColorStop(0,   'rgba(52,211,153,.3)');
+  grad.addColorStop(.45, 'rgba(96,165,250,.95)');
+  grad.addColorStop(1,   'rgba(52,211,153,.3)');
+  actx.strokeStyle = grad;
+  actx.stroke();
+
+  // Live dot
+  const last = APHistory[APHistory.length - 1];
+  actx.fillStyle = last > -60 ? '#60a5fa' : '#34d399';
+  actx.beginPath();
+  actx.arc(xp(APHistory.length - 1), yp(last), 3.5, 0, Math.PI * 2);
+  actx.fill();
+
+  // X-axis label
+  actx.font = '8px Share Tech Mono,monospace';
+  actx.fillStyle = 'rgba(180,240,210,.25)';
+  actx.textAlign = 'right';
+  actx.fillText('time →', pad.l + cw, pad.t + ch + 14);
+}
+
+function updateInfoPanel(imp) {
+  const phI = imp ? getPhaseIdx(imp.pos) : 0;
+  const p = PHASES[phI];
+  document.getElementById('ph-name').textContent = p.name;
+  document.getElementById('ph-sub').textContent  = p.sub;
+  document.getElementById('ph-desc').textContent = p.desc;
+  document.getElementById('na-val').textContent  = p.naV;
+  document.getElementById('k-val').textContent   = p.kV;
+  document.getElementById('cl-val').textContent  = p.clV;
+  document.getElementById('vm-val').textContent  = p.vm;
+  document.getElementById('na-ch').textContent   = p.naCh;
+  document.getElementById('k-ch').textContent    = p.kCh;
+}
+
+function fireImpulse() {
+  const count = parseInt(document.getElementById('stim').value);
+  for (let i = 0; i < count; i++) {
+    impulses.push({ pos: 0, speed: 1 + Math.random() * .25, age: 0 });
+  }
+}
+
+function loop() {
+  const spd = document.getElementById('spd').value / 20;
+  if (playing) {
+    autoFire++;
+    const interval = Math.max(35, 110 - spd * 8);
+    if (autoFire > interval) { autoFire = 0; fireImpulse(); }
+    impulses.forEach(im => { im.pos += .0038 * spd * im.speed; im.age++; });
+    impulses = impulses.filter(im => im.pos < 1.08);
+    const main = impulses[0];
+    if (main) {
+      APHistory.push(apVoltage(main.pos));
+      if (APHistory.length > 300) APHistory.shift();
+      updateInfoPanel(main);
+    } else {
+      APHistory.push(-70);
+      if (APHistory.length > 300) APHistory.shift();
+      updateInfoPanel(null);
+    }
+  }
+  drawNeuron();
+  drawAPChart();
+  requestAnimationFrame(loop);
+}
+loop();
+
+function togglePlay() {
+  playing = !playing;
+  const b = document.getElementById('bPlay');
+  b.textContent = playing ? 'Pause' : 'Play';
+  b.classList.toggle('on', playing);
+}
+
+function fireNow() {
+  impulses = [];
+  autoFire = 0;
+  fireImpulse();
+}
+
+function resetSim() {
+  impulses = [];
+  autoFire = 0;
+  APHistory.fill(-70);
+  playing = true;
+  const b = document.getElementById('bPlay');
+  b.textContent = 'Pause';
+  b.classList.add('on');
+  updateInfoPanel(null);
+}
+
+function toggleLabels() {
+  showLabels = !showLabels;
+  const b = document.getElementById('bLabel');
+  b.classList.toggle('on', showLabels);
+}
+
+document.getElementById('spd').addEventListener('input', function () {
+  document.getElementById('spdv').textContent = (Math.round(this.value / 20 * 10) / 10).toFixed(1) + 'x';
+});
+document.getElementById('stim').addEventListener('input', function () {
+  document.getElementById('stimv').textContent = this.value;
+});
+</script>
+</body>
+</html>

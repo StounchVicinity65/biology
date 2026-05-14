@@ -3,98 +3,121 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neural Impulse Lab</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<title>Neural Impulse Lab | নিউরাল ইম্পালস ল্যাব</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#050a06;font-family:'Share Tech Mono',monospace;overflow:hidden;width:100vw;height:100vh;display:flex;flex-direction:column}
 #root{display:flex;flex-direction:column;width:100%;height:100%;background:#050a06;overflow:hidden}
+
+/* ── TOP BAR ── */
+#topbar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid rgba(52,211,153,.1);background:#040908;flex-shrink:0;z-index:20}
+.back-btn{display:flex;align-items:center;gap:6px;padding:6px 14px;background:transparent;color:#34d399;border:.5px solid rgba(52,211,153,.35);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.06em;cursor:pointer;transition:all .22s}
+.back-btn:hover{background:#34d399;color:#051a0a}
+.topbar-title{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(52,211,153,.5);flex:1;text-align:center}
+.lang-row{display:flex;gap:5px}
+.lp{padding:5px 13px;border-radius:20px;font-size:10px;font-weight:500;letter-spacing:.06em;cursor:pointer;transition:all .22s;border:.5px solid rgba(52,211,153,.25);background:transparent;color:rgba(180,240,210,.45);font-family:'Share Tech Mono',monospace}
+.lp.on{background:#34d399;color:#051a0a;border-color:#34d399}
+
 #neuron-stage{flex:1;position:relative;background:#050a06;min-height:0}
 canvas{display:block;width:100%;height:100%}
-#bottom{display:flex;height:280px;border-top:1px solid rgba(52,211,153,.1);flex-shrink:0}
-#chart-panel{flex:1;position:relative;background:#040908;padding:14px 16px 10px;overflow:hidden}
+#bottom{display:flex;height:275px;border-top:1px solid rgba(52,211,153,.1);flex-shrink:0}
+#chart-panel{flex:1;position:relative;background:#040908;padding:12px 14px 8px;overflow:hidden}
 #info-panel{width:260px;background:#070d08;border-left:1px solid rgba(52,211,153,.1);display:flex;flex-direction:column;flex-shrink:0}
-#info-scroll{flex:1;overflow-y:auto;padding:14px 14px 10px;scrollbar-width:thin;scrollbar-color:#34d399 transparent}
+#info-scroll{flex:1;overflow-y:auto;padding:12px 14px 8px;scrollbar-width:thin;scrollbar-color:#34d399 transparent}
 #info-scroll::-webkit-scrollbar{width:2px}
 #info-scroll::-webkit-scrollbar-thumb{background:#34d399}
-.phase-name{font-size:15px;font-weight:600;color:#34d399;margin-bottom:3px;letter-spacing:-.01em}
-.phase-sub{font-size:9px;color:rgba(52,211,153,.4);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
-.phase-desc{font-size:10px;line-height:1.7;color:rgba(180,240,210,.55);margin-bottom:10px}
-.ion-row{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:4px;border:.5px solid rgba(52,211,153,.12);background:rgba(52,211,153,.03);margin-bottom:5px;font-size:10px;color:rgba(180,240,210,.6)}
+
+.phase-name{font-size:14px;font-weight:600;color:#34d399;margin-bottom:3px;letter-spacing:-.01em}
+.phase-sub{font-size:9px;color:rgba(52,211,153,.4);letter-spacing:.1em;text-transform:uppercase;margin-bottom:9px;font-family:'Share Tech Mono',monospace}
+.phase-desc{font-size:10px;line-height:1.72;color:rgba(180,240,210,.55);margin-bottom:9px}
+.ion-row{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:4px;border:.5px solid rgba(52,211,153,.12);background:rgba(52,211,153,.03);margin-bottom:5px;font-size:10px;color:rgba(180,240,210,.6)}
 .ion-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.ion-val{margin-left:auto;font-size:9px;color:rgba(52,211,153,.8)}
-.sec-lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(52,211,153,.5);margin:10px 0 6px;display:flex;align-items:center;gap:6px}
+.ion-val{margin-left:auto;font-size:9px;color:rgba(52,211,153,.8);font-family:'Share Tech Mono',monospace}
+.sec-lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(52,211,153,.5);margin:9px 0 5px;display:flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace}
 .sec-lbl::after{content:'';flex:1;height:1px;background:rgba(52,211,153,.1)}
-#ctrls{padding:10px 14px 14px;border-top:.5px solid rgba(52,211,153,.1);background:rgba(5,10,6,.6)}
-.srow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+
+#ctrls{padding:9px 14px 12px;border-top:.5px solid rgba(52,211,153,.1);background:rgba(5,10,6,.6)}
+.srow{display:flex;align-items:center;gap:8px;margin-bottom:7px}
 .slbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(180,240,210,.35);min-width:50px}
 input[type=range]{flex:1;height:3px;-webkit-appearance:none;appearance:none;background:rgba(52,211,153,.2);border-radius:2px;outline:none;cursor:pointer}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#34d399;cursor:pointer}
-.sval{font-size:9px;color:#34d399;min-width:26px;text-align:right}
-.brow{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
-.cb{padding:8px 2px;background:transparent;color:#34d399;border:.5px solid rgba(52,211,153,.25);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.05em;cursor:pointer;transition:all .2s;text-align:center}
+.sval{font-size:9px;color:#34d399;min-width:26px;text-align:right;font-family:'Share Tech Mono',monospace}
+.brow{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:5px}
+.cb{padding:7px 2px;background:transparent;color:#34d399;border:.5px solid rgba(52,211,153,.25);border-radius:4px;font-size:9px;letter-spacing:.04em;cursor:pointer;transition:all .2s;text-align:center;font-family:inherit}
 .cb:hover{background:rgba(52,211,153,.12);border-color:#34d399}
 .cb.on{background:#34d399;color:#051a0a;border-color:#34d399}
-#chart-title{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(52,211,153,.45);margin-bottom:6px}
+#chart-title{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(52,211,153,.45);margin-bottom:5px}
 .y-lbl{font-size:9px;color:rgba(180,240,210,.3);text-align:right;width:28px;font-family:'Share Tech Mono',monospace}
 </style>
 </head>
 <body>
-
 <div id="root">
-  <div id="neuron-stage">
-    <canvas id="nc"></canvas>
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <button class="back-btn" onclick="goBack()">◀ <span id="lbl-back">BACK</span></button>
+    <div class="topbar-title" id="lbl-title">Neural Impulse Lab</div>
+    <div class="lang-row">
+      <button class="lp on" id="btnEN" onclick="setLang('en')">EN</button>
+      <button class="lp"    id="btnBN" onclick="setLang('bn')">বাংলা</button>
+    </div>
   </div>
+
+  <div id="neuron-stage"><canvas id="nc"></canvas></div>
+
   <div id="bottom">
     <div id="chart-panel">
       <div id="chart-title">Action potential — membrane voltage (mV)</div>
       <div style="position:relative;display:flex;align-items:flex-start;gap:0">
-        <div style="display:flex;flex-direction:column;justify-content:space-between;height:192px;padding-top:4px;flex-shrink:0">
+        <div style="display:flex;flex-direction:column;justify-content:space-between;height:190px;padding-top:4px;flex-shrink:0">
           <span class="y-lbl">+40</span>
           <span class="y-lbl">0</span>
           <span class="y-lbl">−55</span>
           <span class="y-lbl">−70</span>
         </div>
-        <canvas id="ac" style="flex:1;height:200px;display:block"></canvas>
+        <canvas id="ac" style="flex:1;height:198px;display:block"></canvas>
       </div>
     </div>
+
     <div id="info-panel">
       <div id="info-scroll">
         <div class="phase-name" id="ph-name">Resting state</div>
         <div class="phase-sub" id="ph-sub">−70 mV · polarised</div>
         <div class="phase-desc" id="ph-desc">The neuron is at rest. Na⁺/K⁺ pumps maintain a negative interior charge. Voltage-gated Na⁺ channels are closed; leak K⁺ channels are open.</div>
 
-        <div class="sec-lbl">Ion concentrations</div>
-        <div class="ion-row"><div class="ion-dot" style="background:#60a5fa"></div><span>Na⁺ outside</span><span class="ion-val" id="na-val">High</span></div>
-        <div class="ion-row"><div class="ion-dot" style="background:#34d399"></div><span>K⁺ inside</span><span class="ion-val" id="k-val">High</span></div>
-        <div class="ion-row"><div class="ion-dot" style="background:#f472b6"></div><span>Cl⁻ outside</span><span class="ion-val" id="cl-val">High</span></div>
-        <div class="ion-row"><div class="ion-dot" style="background:#fbbf24"></div><span>Membrane (mV)</span><span class="ion-val" id="vm-val">−70</span></div>
+        <div class="sec-lbl" id="lbl-ions">Ion concentrations</div>
+        <div class="ion-row"><div class="ion-dot" style="background:#60a5fa"></div><span id="lbl-na-out">Na⁺ outside</span><span class="ion-val" id="na-val">High</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#34d399"></div><span id="lbl-k-in">K⁺ inside</span><span class="ion-val" id="k-val">High</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#f472b6"></div><span id="lbl-cl-out">Cl⁻ outside</span><span class="ion-val" id="cl-val">High</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#fbbf24"></div><span id="lbl-mv">Membrane (mV)</span><span class="ion-val" id="vm-val">−70</span></div>
 
-        <div class="sec-lbl">Channel states</div>
-        <div class="ion-row"><div class="ion-dot" style="background:#60a5fa"></div><span>Na⁺ channels</span><span class="ion-val" id="na-ch">Closed</span></div>
-        <div class="ion-row"><div class="ion-dot" style="background:#34d399"></div><span>K⁺ channels</span><span class="ion-val" id="k-ch">Open</span></div>
+        <div class="sec-lbl" id="lbl-channels">Channel states</div>
+        <div class="ion-row"><div class="ion-dot" style="background:#60a5fa"></div><span id="lbl-na-ch">Na⁺ channels</span><span class="ion-val" id="na-ch">Closed</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#34d399"></div><span id="lbl-k-ch">K⁺ channels</span><span class="ion-val" id="k-ch">Open</span></div>
 
-        <div class="sec-lbl">Legend</div>
-        <div class="ion-row"><div class="ion-dot" style="background:#34d399"></div><span>Cell membrane / axon</span></div>
-        <div class="ion-row"><div class="ion-dot" style="background:#60a5fa"></div><span>Myelin sheath</span></div>
-        <div class="ion-row"><div class="ion-dot" style="background:#fbbf24"></div><span>Impulse — depolarised</span></div>
-        <div class="ion-row"><div class="ion-dot" style="background:#f472b6"></div><span>Nucleus</span></div>
+        <div class="sec-lbl" id="lbl-legend">Legend</div>
+        <div class="ion-row"><div class="ion-dot" style="background:#34d399"></div><span id="lbl-leg1">Cell membrane / axon</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#60a5fa"></div><span id="lbl-leg2">Myelin sheath</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#fbbf24"></div><span id="lbl-leg3">Impulse — depolarised</span></div>
+        <div class="ion-row"><div class="ion-dot" style="background:#f472b6"></div><span id="lbl-leg4">Nucleus</span></div>
       </div>
+
       <div id="ctrls">
         <div class="srow">
-          <span class="slbl">Speed</span>
+          <span class="slbl" id="lbl-speed">Speed</span>
           <input type="range" id="spd" min="5" max="60" value="20" step="1">
           <span class="sval" id="spdv">1.0x</span>
         </div>
         <div class="srow">
-          <span class="slbl">Stimuli</span>
+          <span class="slbl" id="lbl-stim">Stimuli</span>
           <input type="range" id="stim" min="1" max="4" value="1" step="1">
           <span class="sval" id="stimv">1</span>
         </div>
         <div class="brow">
-          <button class="cb on" id="bPlay" onclick="togglePlay()">Pause</button>
-          <button class="cb" onclick="fireNow()">Fire!</button>
-          <button class="cb" onclick="resetSim()">Reset</button>
+          <button class="cb on" id="bPlay"  onclick="togglePlay()">Pause</button>
+          <button class="cb"    id="bFire"  onclick="fireNow()">Fire!</button>
+          <button class="cb"    id="bReset" onclick="resetSim()">Reset</button>
           <button class="cb on" id="bLabel" onclick="toggleLabels()">Labels</button>
         </div>
       </div>
@@ -103,432 +126,362 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 </div>
 
 <script>
-const nc  = document.getElementById('nc');
-const nctx = nc.getContext('2d');
-const ac  = document.getElementById('ac');
-const actx = ac.getContext('2d');
+// ── Canvases ─────────────────────────────────────────────────────────────
+const nc = document.getElementById('nc'), nctx = nc.getContext('2d');
+const ac = document.getElementById('ac'), actx = ac.getContext('2d');
 const stage = document.getElementById('neuron-stage');
 const dpr = window.devicePixelRatio || 1;
 
-let playing = true, showLabels = true;
+// ── State ─────────────────────────────────────────────────────────────────
+let playing = true, showLabels = true, lang = 'en';
 let impulses = [], autoFire = 0;
 const APHistory = new Array(300).fill(-70);
-
 const AXON_SEGS = 40;
 
-const PHASES = [
-  {name:'Resting state',      sub:'−70 mV · polarised',
-   desc:'The neuron is at rest. Na⁺/K⁺ pumps maintain a negative interior charge. Voltage-gated Na⁺ channels are closed; leak K⁺ channels are open.',
-   naV:'High', kV:'High', clV:'High', vm:'−70', naCh:'Closed', kCh:'Open'},
-  {name:'Depolarisation',     sub:'+40 mV · Na⁺ influx',
-   desc:'Stimulus exceeds threshold (−55 mV). Voltage-gated Na⁺ channels snap open. Na⁺ floods inward, reversing charge to +40 mV.',
-   naV:'Rushing in', kV:'High', clV:'High', vm:'+40', naCh:'Open', kCh:'Closed'},
-  {name:'Repolarisation',     sub:'−70 mV · K⁺ efflux',
-   desc:'Na⁺ channels inactivate. K⁺ channels open wide. K⁺ floods outward, rapidly restoring negative charge.',
-   naV:'Closed', kV:'Rushing out', clV:'High', vm:'−70', naCh:'Inactive', kCh:'Open'},
-  {name:'Hyperpolarisation',  sub:'−90 mV · overshoot',
-   desc:'K⁺ channels stay open too long, briefly driving membrane below −70 mV. The cell is refractory and cannot fire again.',
-   naV:'Low', kV:'Excess out', clV:'High', vm:'−90', naCh:'Closed', kCh:'Slow close'},
-  {name:'Refractory period',  sub:'−70 mV · resetting',
-   desc:'Na⁺/K⁺ pumps restore ion concentrations. Membrane returns to −70 mV resting potential, ready to fire again.',
-   naV:'Restoring', kV:'Restoring', clV:'High', vm:'−70', naCh:'Closed', kCh:'Closed'},
-];
+// ── Bilingual strings ─────────────────────────────────────────────────────
+const TX = {
+  en: {
+    back:'BACK', title:'Neural Impulse Lab',
+    chart:'Action potential — membrane voltage (mV)',
+    ions:'Ion concentrations',
+    naOut:'Na⁺ outside', kIn:'K⁺ inside', clOut:'Cl⁻ outside', mv:'Membrane (mV)',
+    channels:'Channel states', naCh:'Na⁺ channels', kCh:'K⁺ channels',
+    legend:'Legend',
+    leg1:'Cell membrane / axon', leg2:'Myelin sheath',
+    leg3:'Impulse — depolarised', leg4:'Nucleus',
+    speed:'Speed', stim:'Stimuli',
+    pause:'Pause', play:'Play', fire:'Fire!', reset:'Reset', labels:'Labels',
+    cl:{ dendrites:'dendrites', soma:'soma', nucleus:'nucleus', axon:'axon',
+         myelin:'myelin sheath', synapse:'synaptic terminals',
+         threshold:'threshold', time:'time →' }
+  },
+  bn: {
+    back:'ফিরে যান', title:'নিউরাল ইম্পালস ল্যাব',
+    chart:'অ্যাকশন পটেনশিয়াল — ঝিল্লির ভোল্টেজ (mV)',
+    ions:'আয়ন ঘনত্ব',
+    naOut:'Na⁺ বাইরে', kIn:'K⁺ ভেতরে', clOut:'Cl⁻ বাইরে', mv:'ঝিল্লি (mV)',
+    channels:'চ্যানেলের অবস্থা', naCh:'Na⁺ চ্যানেল', kCh:'K⁺ চ্যানেল',
+    legend:'রং-নির্দেশিকা',
+    leg1:'কোষ ঝিল্লি / অ্যাক্সন', leg2:'মায়েলিন শিথ',
+    leg3:'ইম্পালস — ডিপোলারাইজড', leg4:'নিউক্লিয়াস',
+    speed:'গতি', stim:'উদ্দীপনা',
+    pause:'থামান', play:'চালান', fire:'ফায়ার!', reset:'রিসেট', labels:'লেবেল',
+    cl:{ dendrites:'ডেনড্রাইট', soma:'সোমা', nucleus:'নিউক্লিয়াস', axon:'অ্যাক্সন',
+         myelin:'মায়েলিন শিথ', synapse:'সিনাপটিক টার্মিনাল',
+         threshold:'থ্রেশহোল্ড', time:'সময় →' }
+  }
+};
 
-const AP_CURVE = [
+// ── Phase data ────────────────────────────────────────────────────────────
+const PHASES = {
+  en:[
+    {name:'Resting state',      sub:'−70 mV · polarised',
+     desc:'The neuron is at rest. Na⁺/K⁺ pumps maintain a negative interior charge. Voltage-gated Na⁺ channels are closed; leak K⁺ channels are open.',
+     naV:'High',       kV:'High',        clV:'High', vm:'−70', naCh:'Closed',   kCh:'Open'},
+    {name:'Depolarisation',     sub:'+40 mV · Na⁺ influx',
+     desc:'Stimulus exceeds threshold (−55 mV). Voltage-gated Na⁺ channels snap open. Na⁺ floods inward, reversing charge to +40 mV.',
+     naV:'Rushing in', kV:'High',        clV:'High', vm:'+40', naCh:'Open',     kCh:'Closed'},
+    {name:'Repolarisation',     sub:'−70 mV · K⁺ efflux',
+     desc:'Na⁺ channels inactivate. K⁺ channels open wide. K⁺ floods outward, rapidly restoring negative charge.',
+     naV:'Closed',     kV:'Rushing out', clV:'High', vm:'−70', naCh:'Inactive', kCh:'Open'},
+    {name:'Hyperpolarisation',  sub:'−90 mV · overshoot',
+     desc:'K⁺ channels stay open too long, briefly driving membrane below −70 mV. The cell is refractory and cannot fire again.',
+     naV:'Low',        kV:'Excess out',  clV:'High', vm:'−90', naCh:'Closed',   kCh:'Slow close'},
+    {name:'Refractory period',  sub:'−70 mV · resetting',
+     desc:'Na⁺/K⁺ pumps restore ion concentrations. Membrane returns to −70 mV resting potential, ready to fire again.',
+     naV:'Restoring',  kV:'Restoring',   clV:'High', vm:'−70', naCh:'Closed',   kCh:'Closed'},
+  ],
+  bn:[
+    {name:'বিশ্রামের অবস্থা',        sub:'−70 mV · পোলারাইজড',
+     desc:'নিউরন বিশ্রামে আছে। Na⁺/K⁺ পাম্প ভেতরে ঋণাত্মক চার্জ বজায় রাখে। ভোল্টেজ-গেটেড Na⁺ চ্যানেল বন্ধ; লিক K⁺ চ্যানেল খোলা।',
+     naV:'বেশি',           kV:'বেশি',             clV:'বেশি', vm:'−70', naCh:'বন্ধ',        kCh:'খোলা'},
+    {name:'ডিপোলারাইজেশন',           sub:'+40 mV · Na⁺ প্রবেশ',
+     desc:'উদ্দীপনা থ্রেশহোল্ড (−55 mV) অতিক্রম করে। ভোল্টেজ-গেটেড Na⁺ চ্যানেল খুলে যায়। Na⁺ ভেতরে প্রবেশ করে চার্জ +40 mV-এ নিয়ে যায়।',
+     naV:'ভেতরে ঢুকছে',   kV:'বেশি',             clV:'বেশি', vm:'+40', naCh:'খোলা',       kCh:'বন্ধ'},
+    {name:'রিপোলারাইজেশন',           sub:'−70 mV · K⁺ বের হচ্ছে',
+     desc:'Na⁺ চ্যানেল নিষ্ক্রিয় হয়। K⁺ চ্যানেল প্রশস্ত খুলে যায়। K⁺ বাইরে বের হয়ে দ্রুত ঋণাত্মক চার্জ ফিরিয়ে আনে।',
+     naV:'বন্ধ',           kV:'বাইরে বের হচ্ছে',  clV:'বেশি', vm:'−70', naCh:'নিষ্ক্রিয়',  kCh:'খোলা'},
+    {name:'হাইপারপোলারাইজেশন',       sub:'−90 mV · অতিরিক্ত পরিবর্তন',
+     desc:'K⁺ চ্যানেল বেশিক্ষণ খোলা থাকে, সংক্ষেপে ঝিল্লিকে −70 mV-এর নিচে নিয়ে যায়। কোষ রেফ্র্যাক্টরি অবস্থায় থাকে।',
+     naV:'কম',             kV:'অতিরিক্ত বের',     clV:'বেশি', vm:'−90', naCh:'বন্ধ',        kCh:'ধীরে বন্ধ'},
+    {name:'রেফ্র্যাক্টরি পর্যায়',    sub:'−70 mV · পুনরায় সেট হচ্ছে',
+     desc:'Na⁺/K⁺ পাম্প আয়নের মাত্রা পুনরুদ্ধার করে। ঝিল্লি আবার −70 mV বিশ্রাম পটেনশিয়ালে ফিরে আসে।',
+     naV:'পুনরুদ্ধার',    kV:'পুনরুদ্ধার',        clV:'বেশি', vm:'−70', naCh:'বন্ধ',        kCh:'বন্ধ'},
+  ]
+};
+
+// ── AP curve ──────────────────────────────────────────────────────────────
+const APC = [
   {t:0,v:-70},{t:.05,v:-70},{t:.1,v:-55},{t:.15,v:0},{t:.2,v:40},
   {t:.3,v:40},{t:.38,v:10},{t:.45,v:-50},{t:.52,v:-70},{t:.6,v:-90},
   {t:.72,v:-90},{t:.82,v:-75},{t:.9,v:-70},{t:1,v:-70}
 ];
-
-function apVoltage(tt) {
-  tt = ((tt % 1) + 1) % 1;
-  for (let i = 1; i < AP_CURVE.length; i++) {
-    if (tt <= AP_CURVE[i].t) {
-      const a = AP_CURVE[i-1], b = AP_CURVE[i];
-      const f = (tt - a.t) / (b.t - a.t);
-      return a.v + (b.v - a.v) * f;
-    }
+function apV(tt) {
+  tt = ((tt%1)+1)%1;
+  for (let i=1;i<APC.length;i++) {
+    if (tt<=APC[i].t) { const a=APC[i-1],b=APC[i]; return a.v+(b.v-a.v)*(tt-a.t)/(b.t-a.t); }
   }
   return -70;
 }
-
-function getPhaseIdx(pos) {
-  const tt = ((pos % 1) + 1) % 1;
-  if (tt < .10) return 0;
-  if (tt < .35) return 1;
-  if (tt < .55) return 2;
-  if (tt < .75) return 3;
-  return 4;
+function phIdx(pos) {
+  const tt=((pos%1)+1)%1;
+  if(tt<.10)return 0; if(tt<.35)return 1; if(tt<.55)return 2; if(tt<.75)return 3; return 4;
 }
 
-const dendrites = Array.from({length:7}, (_,i) => {
-  const a = Math.PI * .55 + i * (Math.PI * .75 / 6);
-  return {
-    a, len: 38 + Math.random() * 28,
-    sub: Math.random() < .5
-      ? {da: a - .3 + Math.random()*.2, dlen: 16 + Math.random()*14}
-      : null
-  };
+// ── Geometry ──────────────────────────────────────────────────────────────
+const dendrites = Array.from({length:7},(_,i)=>{
+  const a=Math.PI*.55+i*(Math.PI*.75/6);
+  return {a, len:38+Math.random()*28,
+    sub:Math.random()<.5?{da:a-.3+Math.random()*.2,dlen:16+Math.random()*14}:null};
 });
+const myelinSegs=[];
+for(let i=3;i<AXON_SEGS-3;i++){if(i%4===3)myelinSegs.push(i);}
 
-const myelinSegs = [];
-for (let i = 3; i < AXON_SEGS - 3; i++) {
-  if (i % 4 === 3) myelinSegs.push(i);
+function NW(){return stage.clientWidth;}
+function NH(){return stage.clientHeight;}
+function AW(){return Math.max(10,ac.parentElement.clientWidth-36);}
+
+function resizeAll(){
+  nc.width=stage.clientWidth*dpr; nc.height=stage.clientHeight*dpr;
+  nctx.setTransform(dpr,0,0,dpr,0,0);
+  ac.width=AW()*dpr; ac.height=198*dpr;
+  actx.setTransform(dpr,0,0,dpr,0,0);
 }
-
-function NW() { return stage.clientWidth; }
-function NH() { return stage.clientHeight; }
-function AW() { return ac.parentElement.clientWidth - 36; }
-
-function resizeAll() {
-  nc.width  = stage.clientWidth  * dpr;
-  nc.height = stage.clientHeight * dpr;
-  nctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const acW = Math.max(10, ac.parentElement.clientWidth - 36);
-  ac.width  = acW * dpr;
-  ac.height = 200 * dpr;
-  actx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-window.addEventListener('resize', resizeAll);
+window.addEventListener('resize',resizeAll);
 resizeAll();
 
-function getLayout() {
-  const w = NW(), h = NH(), cy = h / 2;
-  const bodyX = 90, bodyR = 30;
-  const axonStart = bodyX + bodyR;
-  const axonEnd   = w - 90;
-  const pts = [];
-  for (let i = 0; i <= AXON_SEGS; i++) {
-    pts.push({ x: axonStart + i * (axonEnd - axonStart) / AXON_SEGS, y: cy });
-  }
-  const branches = [
-    {dx:55, dy:-44}, {dx:55, dy:-16},
-    {dx:55, dy: 16}, {dx:55, dy: 44}
-  ];
-  return {w, h, cy, bodyX, bodyR, axonStart, axonEnd, pts, branches};
+function layout(){
+  const w=NW(),h=NH(),cy=h/2,bodyX=90,bodyR=30;
+  const axonStart=bodyX+bodyR,axonEnd=w-90;
+  const pts=[];
+  for(let i=0;i<=AXON_SEGS;i++) pts.push({x:axonStart+i*(axonEnd-axonStart)/AXON_SEGS,y:cy});
+  return {w,h,cy,bodyX,bodyR,axonStart,axonEnd,pts,
+    branches:[{dx:55,dy:-44},{dx:55,dy:-16},{dx:55,dy:16},{dx:55,dy:44}]};
 }
 
-function drawNeuron() {
-  const {w, h, cy, bodyX, bodyR, axonStart, axonEnd, pts, branches} = getLayout();
-  nctx.clearRect(0, 0, w, h);
+// ── Canvas font helper ────────────────────────────────────────────────────
+function cf(sz){ return lang==='bn'?`${sz}px Hind Siliguri,monospace`:`${sz}px Share Tech Mono,monospace`; }
 
-  // Ambient rings
-  nctx.strokeStyle = 'rgba(52,211,153,.05)';
-  nctx.lineWidth = 1;
-  for (let i = 0; i < 7; i++) {
-    nctx.beginPath();
-    nctx.arc(bodyX, cy, bodyR + 22 + i * 16, 0, Math.PI * 2);
-    nctx.stroke();
+// ── Draw neuron ───────────────────────────────────────────────────────────
+function drawNeuron(){
+  const {w,h,cy,bodyX,bodyR,axonStart,axonEnd,pts,branches}=layout();
+  nctx.clearRect(0,0,w,h);
+  const CL=TX[lang].cl;
+
+  // ambient rings
+  nctx.strokeStyle='rgba(52,211,153,.05)';nctx.lineWidth=1;
+  for(let i=0;i<7;i++){nctx.beginPath();nctx.arc(bodyX,cy,bodyR+22+i*16,0,Math.PI*2);nctx.stroke();}
+
+  // dendrites
+  dendrites.forEach(d=>{
+    const x0=bodyX+Math.cos(d.a)*bodyR,y0=cy+Math.sin(d.a)*bodyR;
+    const x1=bodyX+Math.cos(d.a)*(bodyR+d.len),y1=cy+Math.sin(d.a)*(bodyR+d.len);
+    nctx.strokeStyle='rgba(52,211,153,.22)';nctx.lineWidth=1.2;
+    nctx.beginPath();nctx.moveTo(x0,y0);nctx.lineTo(x1,y1);nctx.stroke();
+    if(d.sub){const mx=(x0+x1)/2,my=(y0+y1)/2;nctx.beginPath();nctx.moveTo(mx,my);
+      nctx.lineTo(mx+Math.cos(d.sub.da)*d.sub.dlen,my+Math.sin(d.sub.da)*d.sub.dlen);nctx.stroke();}
+  });
+  if(showLabels){nctx.font=cf(9);nctx.fillStyle='rgba(52,211,153,.4)';nctx.textAlign='right';
+    nctx.fillText(CL.dendrites,bodyX-bodyR-6,cy-10);}
+
+  // axon
+  nctx.strokeStyle='rgba(52,211,153,.38)';nctx.lineWidth=5;nctx.lineCap='round';
+  nctx.beginPath();nctx.moveTo(axonStart,cy);nctx.lineTo(axonEnd,cy);nctx.stroke();
+  nctx.lineCap='butt';
+
+  // ion dots
+  for(let x=axonStart+6;x<axonEnd-6;x+=20){
+    const near=impulses.some(im=>Math.abs((axonStart+im.pos*(axonEnd-axonStart))-x)<32);
+    nctx.fillStyle=near?'rgba(96,165,250,.7)':'rgba(52,211,153,.15)';
+    nctx.beginPath();nctx.arc(x,cy-9,1.5,0,Math.PI*2);nctx.fill();
+    nctx.beginPath();nctx.arc(x,cy+9,1.5,0,Math.PI*2);nctx.fill();
   }
 
-  // Dendrites
-  dendrites.forEach(d => {
-    const x0 = bodyX + Math.cos(d.a) * bodyR;
-    const y0 = cy    + Math.sin(d.a) * bodyR;
-    const x1 = bodyX + Math.cos(d.a) * (bodyR + d.len);
-    const y1 = cy    + Math.sin(d.a) * (bodyR + d.len);
-    nctx.strokeStyle = 'rgba(52,211,153,.22)';
-    nctx.lineWidth = 1.2;
-    nctx.beginPath(); nctx.moveTo(x0, y0); nctx.lineTo(x1, y1); nctx.stroke();
-    if (d.sub) {
-      const mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
-      nctx.beginPath(); nctx.moveTo(mx, my);
-      nctx.lineTo(mx + Math.cos(d.sub.da) * d.sub.dlen,
-                  my + Math.sin(d.sub.da) * d.sub.dlen);
-      nctx.stroke();
-    }
-  });
-  if (showLabels) {
-    nctx.font = '9px Share Tech Mono,monospace';
-    nctx.fillStyle = 'rgba(52,211,153,.4)';
-    nctx.textAlign = 'right';
-    nctx.fillText('dendrites', bodyX - bodyR - 6, cy - 10);
-  }
-
-  // Axon backbone
-  nctx.strokeStyle = 'rgba(52,211,153,.38)';
-  nctx.lineWidth = 5;
-  nctx.lineCap = 'round';
-  nctx.beginPath(); nctx.moveTo(axonStart, cy); nctx.lineTo(axonEnd, cy); nctx.stroke();
-  nctx.lineCap = 'butt';
-
-  // Ion channel dots (show polarity)
-  const dotSpacing = 20;
-  for (let x = axonStart + 6; x < axonEnd - 6; x += dotSpacing) {
-    const hasImpNear = impulses.some(im => {
-      const ipx = axonStart + im.pos * (axonEnd - axonStart);
-      return Math.abs(ipx - x) < 32;
-    });
-    nctx.fillStyle = hasImpNear ? 'rgba(96,165,250,.7)' : 'rgba(52,211,153,.15)';
-    nctx.beginPath(); nctx.arc(x, cy - 9, 1.5, 0, Math.PI * 2); nctx.fill();
-    nctx.beginPath(); nctx.arc(x, cy + 9, 1.5, 0, Math.PI * 2); nctx.fill();
-  }
-
-  // Myelin sheaths
-  myelinSegs.forEach((mi, idx) => {
-    const seg = pts[mi + 1];
-    nctx.strokeStyle = 'rgba(96,165,250,.5)';
-    nctx.lineWidth = 10;
-    nctx.lineCap = 'round';
-    nctx.beginPath(); nctx.moveTo(seg.x - 13, cy); nctx.lineTo(seg.x + 13, cy); nctx.stroke();
-    nctx.lineCap = 'butt';
-    if (showLabels && idx === 1) {
-      nctx.font = '9px Share Tech Mono,monospace';
-      nctx.fillStyle = 'rgba(96,165,250,.55)';
-      nctx.textAlign = 'center';
-      nctx.fillText('myelin sheath', seg.x, cy - 20);
-    }
+  // myelin
+  myelinSegs.forEach((mi,idx)=>{
+    const seg=pts[mi+1];
+    nctx.strokeStyle='rgba(96,165,250,.5)';nctx.lineWidth=10;nctx.lineCap='round';
+    nctx.beginPath();nctx.moveTo(seg.x-13,cy);nctx.lineTo(seg.x+13,cy);nctx.stroke();
+    nctx.lineCap='butt';
+    if(showLabels&&idx===1){nctx.font=cf(9);nctx.fillStyle='rgba(96,165,250,.55)';nctx.textAlign='center';
+      nctx.fillText(CL.myelin,seg.x,cy-20);}
   });
 
-  // Nodes of Ranvier markers
-  myelinSegs.forEach(mi => {
-    const seg = pts[mi + 1];
-    nctx.strokeStyle = 'rgba(52,211,153,.5)';
-    nctx.lineWidth = 1;
-    nctx.beginPath(); nctx.arc(seg.x - 14, cy, 3, 0, Math.PI * 2); nctx.stroke();
-    nctx.beginPath(); nctx.arc(seg.x + 14, cy, 3, 0, Math.PI * 2); nctx.stroke();
+  // nodes of Ranvier
+  myelinSegs.forEach(mi=>{const seg=pts[mi+1];
+    nctx.strokeStyle='rgba(52,211,153,.5)';nctx.lineWidth=1;
+    nctx.beginPath();nctx.arc(seg.x-14,cy,3,0,Math.PI*2);nctx.stroke();
+    nctx.beginPath();nctx.arc(seg.x+14,cy,3,0,Math.PI*2);nctx.stroke();
   });
 
-  // Soma body
-  nctx.fillStyle = 'rgba(52,211,153,.08)';
-  nctx.beginPath(); nctx.arc(bodyX, cy, bodyR, 0, Math.PI * 2); nctx.fill();
-  nctx.strokeStyle = 'rgba(52,211,153,.75)';
-  nctx.lineWidth = 1.5;
-  nctx.beginPath(); nctx.arc(bodyX, cy, bodyR, 0, Math.PI * 2); nctx.stroke();
+  // soma
+  nctx.fillStyle='rgba(52,211,153,.08)';nctx.beginPath();nctx.arc(bodyX,cy,bodyR,0,Math.PI*2);nctx.fill();
+  nctx.strokeStyle='rgba(52,211,153,.75)';nctx.lineWidth=1.5;nctx.beginPath();nctx.arc(bodyX,cy,bodyR,0,Math.PI*2);nctx.stroke();
 
-  // Nucleus
-  nctx.fillStyle = 'rgba(244,114,182,.08)';
-  nctx.strokeStyle = 'rgba(244,114,182,.55)';
-  nctx.lineWidth = 1;
-  nctx.setLineDash([3, 3]);
-  nctx.beginPath(); nctx.arc(bodyX, cy, 14, 0, Math.PI * 2); nctx.fill(); nctx.stroke();
+  // nucleus
+  nctx.fillStyle='rgba(244,114,182,.08)';nctx.strokeStyle='rgba(244,114,182,.55)';
+  nctx.lineWidth=1;nctx.setLineDash([3,3]);
+  nctx.beginPath();nctx.arc(bodyX,cy,14,0,Math.PI*2);nctx.fill();nctx.stroke();
   nctx.setLineDash([]);
 
-  if (showLabels) {
-    nctx.font = '9px Share Tech Mono,monospace';
-    nctx.textAlign = 'center';
-    nctx.fillStyle = 'rgba(52,211,153,.5)';
-    nctx.fillText('soma', bodyX, cy + bodyR + 13);
-    nctx.fillStyle = 'rgba(244,114,182,.5)';
-    nctx.fillText('nucleus', bodyX, cy + 5);
-    nctx.fillStyle = 'rgba(52,211,153,.4)';
-    nctx.fillText('axon', axonStart + (axonEnd - axonStart) / 2, cy + 20);
+  if(showLabels){
+    nctx.font=cf(9);nctx.textAlign='center';
+    nctx.fillStyle='rgba(52,211,153,.5)'; nctx.fillText(CL.soma,bodyX,cy+bodyR+13);
+    nctx.fillStyle='rgba(244,114,182,.5)';nctx.fillText(CL.nucleus,bodyX,cy+5);
+    nctx.fillStyle='rgba(52,211,153,.4)'; nctx.fillText(CL.axon,axonStart+(axonEnd-axonStart)/2,cy+20);
   }
 
-  // Synaptic terminals
-  branches.forEach((b, bi) => {
-    nctx.strokeStyle = 'rgba(52,211,153,.4)';
-    nctx.lineWidth = 1.5;
-    nctx.beginPath();
-    nctx.moveTo(axonEnd, cy);
-    nctx.quadraticCurveTo(axonEnd + b.dx * .35, cy + b.dy * .3,
-                           axonEnd + b.dx, cy + b.dy);
-    nctx.stroke();
-
-    // Bulb
-    nctx.fillStyle = 'rgba(52,211,153,.55)';
-    nctx.beginPath();
-    nctx.arc(axonEnd + b.dx, cy + b.dy, 5, 0, Math.PI * 2);
-    nctx.fill();
-
-    // Vesicle release if impulse near end
-    const firing = impulses.some(im => im.pos > .88);
-    if (firing && Math.random() < .35) {
-      for (let v = 0; v < 3; v++) {
-        nctx.globalAlpha = .6;
-        nctx.fillStyle = '#fbbf24';
-        nctx.beginPath();
-        nctx.arc(axonEnd + b.dx + 8 + Math.random() * 14,
-                 cy + b.dy + Math.random() * 12 - 6, 2, 0, Math.PI * 2);
-        nctx.fill();
-        nctx.globalAlpha = 1;
-      }
+  // synaptic terminals
+  branches.forEach((b,bi)=>{
+    nctx.strokeStyle='rgba(52,211,153,.4)';nctx.lineWidth=1.5;nctx.beginPath();
+    nctx.moveTo(axonEnd,cy);nctx.quadraticCurveTo(axonEnd+b.dx*.35,cy+b.dy*.3,axonEnd+b.dx,cy+b.dy);nctx.stroke();
+    nctx.fillStyle='rgba(52,211,153,.55)';nctx.beginPath();nctx.arc(axonEnd+b.dx,cy+b.dy,5,0,Math.PI*2);nctx.fill();
+    if(impulses.some(im=>im.pos>.88)&&Math.random()<.35){
+      for(let v=0;v<3;v++){nctx.globalAlpha=.6;nctx.fillStyle='#fbbf24';nctx.beginPath();
+        nctx.arc(axonEnd+b.dx+8+Math.random()*14,cy+b.dy+Math.random()*12-6,2,0,Math.PI*2);nctx.fill();nctx.globalAlpha=1;}
     }
-    if (showLabels && bi === 0) {
-      nctx.font = '9px Share Tech Mono,monospace';
-      nctx.fillStyle = 'rgba(52,211,153,.4)';
-      nctx.textAlign = 'left';
-      nctx.fillText('synaptic terminals', axonEnd + b.dx + 8, cy + b.dy - 4);
-    }
+    if(showLabels&&bi===0){nctx.font=cf(9);nctx.fillStyle='rgba(52,211,153,.4)';nctx.textAlign='left';
+      nctx.fillText(CL.synapse,axonEnd+b.dx+8,cy+b.dy-4);}
   });
 
-  // Impulse pulses
-  impulses.forEach(imp => {
-    const px = axonStart + imp.pos * (axonEnd - axonStart);
-    const phI = getPhaseIdx(imp.pos);
-    const colors = ['#34d399', '#60a5fa', '#fbbf24', '#f472b6', '#a78bfa'];
-    const col = colors[phI];
-
-    // Wake trail
-    nctx.globalAlpha = .12;
-    nctx.fillStyle = col;
-    nctx.beginPath(); nctx.arc(px - 20, cy, 20, 0, Math.PI * 2); nctx.fill();
-    nctx.globalAlpha = .2;
-    nctx.beginPath(); nctx.arc(px, cy, 24, 0, Math.PI * 2); nctx.fill();
-    nctx.globalAlpha = .4;
-    nctx.beginPath(); nctx.arc(px, cy, 14, 0, Math.PI * 2); nctx.fill();
-    nctx.globalAlpha = 1;
-    nctx.fillStyle = col;
-    nctx.beginPath(); nctx.arc(px, cy, 6, 0, Math.PI * 2); nctx.fill();
-
-    // Radial spokes
-    nctx.strokeStyle = col;
-    nctx.lineWidth = 1;
-    nctx.globalAlpha = .3;
-    for (let k = 0; k < 6; k++) {
-      const a = (k / 6) * Math.PI * 2;
-      nctx.beginPath();
-      nctx.moveTo(px + Math.cos(a) * 8, cy + Math.sin(a) * 8);
-      nctx.lineTo(px + Math.cos(a) * 18, cy + Math.sin(a) * 18);
-      nctx.stroke();
-    }
-    nctx.globalAlpha = 1;
+  // impulses
+  impulses.forEach(imp=>{
+    const px=axonStart+imp.pos*(axonEnd-axonStart);
+    const col=['#34d399','#60a5fa','#fbbf24','#f472b6','#a78bfa'][phIdx(imp.pos)];
+    nctx.globalAlpha=.12;nctx.fillStyle=col;nctx.beginPath();nctx.arc(px-20,cy,20,0,Math.PI*2);nctx.fill();
+    nctx.globalAlpha=.2;nctx.beginPath();nctx.arc(px,cy,24,0,Math.PI*2);nctx.fill();
+    nctx.globalAlpha=.4;nctx.beginPath();nctx.arc(px,cy,14,0,Math.PI*2);nctx.fill();
+    nctx.globalAlpha=1;nctx.fillStyle=col;nctx.beginPath();nctx.arc(px,cy,6,0,Math.PI*2);nctx.fill();
+    nctx.strokeStyle=col;nctx.lineWidth=1;nctx.globalAlpha=.3;
+    for(let k=0;k<6;k++){const a=k/6*Math.PI*2;nctx.beginPath();
+      nctx.moveTo(px+Math.cos(a)*8,cy+Math.sin(a)*8);nctx.lineTo(px+Math.cos(a)*18,cy+Math.sin(a)*18);nctx.stroke();}
+    nctx.globalAlpha=1;
   });
 }
 
-function drawAPChart() {
-  const w = Math.max(10, AW()), h = 200;
-  actx.clearRect(0, 0, w, h);
-  const pad = {l: 4, r: 10, t: 8, b: 22};
-  const cw = w - pad.l - pad.r;
-  const ch = h - pad.t - pad.b;
-  const vMin = -100, vMax = 55, vRange = vMax - vMin;
+// ── Draw AP chart ─────────────────────────────────────────────────────────
+function drawChart(){
+  const w=AW(),h=198;actx.clearRect(0,0,w,h);
+  const pad={l:4,r:10,t:8,b:22},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
+  const vMin=-100,vMax=55,vR=vMax-vMin;
+  const yp=v=>pad.t+ch*(1-(v-vMin)/vR);
+  const xp=i=>pad.l+i*(cw/(APHistory.length-1));
+  const CL=TX[lang].cl;
 
-  function yp(v) { return pad.t + ch * (1 - (v - vMin) / vRange); }
-  function xp(i) { return pad.l + i * (cw / (APHistory.length - 1)); }
+  actx.strokeStyle='rgba(52,211,153,.06)';actx.lineWidth=.5;
+  [-70,-55,0,40].forEach(v=>{actx.beginPath();actx.moveTo(pad.l,yp(v));actx.lineTo(pad.l+cw,yp(v));actx.stroke();});
+  actx.strokeStyle='rgba(52,211,153,.14)';actx.lineWidth=.5;
+  actx.beginPath();actx.moveTo(pad.l,pad.t);actx.lineTo(pad.l,pad.t+ch);actx.stroke();
 
-  // Grid lines
-  actx.strokeStyle = 'rgba(52,211,153,.06)';
-  actx.lineWidth = .5;
-  [-70, -55, 0, 40].forEach(v => {
-    actx.beginPath(); actx.moveTo(pad.l, yp(v)); actx.lineTo(pad.l + cw, yp(v)); actx.stroke();
-  });
-
-  // Left axis
-  actx.strokeStyle = 'rgba(52,211,153,.14)';
-  actx.lineWidth = .5;
-  actx.beginPath(); actx.moveTo(pad.l, pad.t); actx.lineTo(pad.l, pad.t + ch); actx.stroke();
-
-  // Threshold marker
-  actx.strokeStyle = 'rgba(251,191,36,.18)';
-  actx.lineWidth = .8;
-  actx.setLineDash([3, 7]);
-  actx.beginPath(); actx.moveTo(pad.l, yp(-55)); actx.lineTo(pad.l + cw, yp(-55)); actx.stroke();
+  actx.strokeStyle='rgba(251,191,36,.18)';actx.lineWidth=.8;actx.setLineDash([3,7]);
+  actx.beginPath();actx.moveTo(pad.l,yp(-55));actx.lineTo(pad.l+cw,yp(-55));actx.stroke();
   actx.setLineDash([]);
-  actx.font = '8px Share Tech Mono,monospace';
-  actx.fillStyle = 'rgba(251,191,36,.5)';
-  actx.textAlign = 'left';
-  actx.fillText('threshold', pad.l + 4, yp(-55) - 3);
+  actx.font=cf(8);actx.fillStyle='rgba(251,191,36,.5)';actx.textAlign='left';
+  actx.fillText(CL.threshold,pad.l+4,yp(-55)-3);
 
-  // Voltage curve
-  actx.lineWidth = 1.8;
-  actx.beginPath();
-  APHistory.forEach((v, i) => {
-    const x = xp(i), y = yp(v);
-    i === 0 ? actx.moveTo(x, y) : actx.lineTo(x, y);
-  });
-  const grad = actx.createLinearGradient(pad.l, 0, pad.l + cw, 0);
-  grad.addColorStop(0,   'rgba(52,211,153,.3)');
-  grad.addColorStop(.45, 'rgba(96,165,250,.95)');
-  grad.addColorStop(1,   'rgba(52,211,153,.3)');
-  actx.strokeStyle = grad;
-  actx.stroke();
+  actx.lineWidth=1.8;actx.beginPath();
+  APHistory.forEach((v,i)=>{i===0?actx.moveTo(xp(i),yp(v)):actx.lineTo(xp(i),yp(v));});
+  const g=actx.createLinearGradient(pad.l,0,pad.l+cw,0);
+  g.addColorStop(0,'rgba(52,211,153,.3)');g.addColorStop(.45,'rgba(96,165,250,.95)');g.addColorStop(1,'rgba(52,211,153,.3)');
+  actx.strokeStyle=g;actx.stroke();
 
-  // Live dot
-  const last = APHistory[APHistory.length - 1];
-  actx.fillStyle = last > -60 ? '#60a5fa' : '#34d399';
-  actx.beginPath();
-  actx.arc(xp(APHistory.length - 1), yp(last), 3.5, 0, Math.PI * 2);
-  actx.fill();
+  const last=APHistory[APHistory.length-1];
+  actx.fillStyle=last>-60?'#60a5fa':'#34d399';
+  actx.beginPath();actx.arc(xp(APHistory.length-1),yp(last),3.5,0,Math.PI*2);actx.fill();
 
-  // X-axis label
-  actx.font = '8px Share Tech Mono,monospace';
-  actx.fillStyle = 'rgba(180,240,210,.25)';
-  actx.textAlign = 'right';
-  actx.fillText('time →', pad.l + cw, pad.t + ch + 14);
+  actx.font=cf(8);actx.fillStyle='rgba(180,240,210,.25)';actx.textAlign='right';
+  actx.fillText(CL.time,pad.l+cw,pad.t+ch+14);
 }
 
-function updateInfoPanel(imp) {
-  const phI = imp ? getPhaseIdx(imp.pos) : 0;
-  const p = PHASES[phI];
-  document.getElementById('ph-name').textContent = p.name;
-  document.getElementById('ph-sub').textContent  = p.sub;
-  document.getElementById('ph-desc').textContent = p.desc;
-  document.getElementById('na-val').textContent  = p.naV;
-  document.getElementById('k-val').textContent   = p.kV;
-  document.getElementById('cl-val').textContent  = p.clV;
-  document.getElementById('vm-val').textContent  = p.vm;
-  document.getElementById('na-ch').textContent   = p.naCh;
-  document.getElementById('k-ch').textContent    = p.kCh;
+// ── Update info panel ─────────────────────────────────────────────────────
+function updateInfo(imp){
+  const p=PHASES[lang][imp?phIdx(imp.pos):0];
+  document.getElementById('ph-name').textContent=p.name;
+  document.getElementById('ph-sub').textContent=p.sub;
+  document.getElementById('ph-desc').textContent=p.desc;
+  document.getElementById('na-val').textContent=p.naV;
+  document.getElementById('k-val').textContent=p.kV;
+  document.getElementById('cl-val').textContent=p.clV;
+  document.getElementById('vm-val').textContent=p.vm;
+  document.getElementById('na-ch').textContent=p.naCh;
+  document.getElementById('k-ch').textContent=p.kCh;
 }
 
-function fireImpulse() {
-  const count = parseInt(document.getElementById('stim').value);
-  for (let i = 0; i < count; i++) {
-    impulses.push({ pos: 0, speed: 1 + Math.random() * .25, age: 0 });
-  }
+// ── Apply language to DOM ─────────────────────────────────────────────────
+function applyLang(){
+  const T=TX[lang];
+  const map={
+    'lbl-back':T.back,'lbl-title':T.title,'chart-title':T.chart,
+    'lbl-ions':T.ions,'lbl-na-out':T.naOut,'lbl-k-in':T.kIn,
+    'lbl-cl-out':T.clOut,'lbl-mv':T.mv,'lbl-channels':T.channels,
+    'lbl-na-ch':T.naCh,'lbl-k-ch':T.kCh,'lbl-legend':T.legend,
+    'lbl-leg1':T.leg1,'lbl-leg2':T.leg2,'lbl-leg3':T.leg3,'lbl-leg4':T.leg4,
+    'lbl-speed':T.speed,'lbl-stim':T.stim,
+    'bFire':T.fire,'bReset':T.reset,'bLabel':T.labels
+  };
+  for(const[id,val]of Object.entries(map)){const el=document.getElementById(id);if(el)el.textContent=val;}
+  document.getElementById('bPlay').textContent=playing?T.pause:T.play;
+  document.body.style.fontFamily=lang==='bn'
+    ?"'Hind Siliguri','Share Tech Mono',monospace"
+    :"'Share Tech Mono',monospace";
+  updateInfo(impulses[0]||null);
 }
 
-function loop() {
-  const spd = document.getElementById('spd').value / 20;
-  if (playing) {
+function setLang(l){
+  lang=l;
+  document.getElementById('btnEN').classList.toggle('on',l==='en');
+  document.getElementById('btnBN').classList.toggle('on',l==='bn');
+  applyLang();
+}
+
+// ── Main loop ─────────────────────────────────────────────────────────────
+function fireImpulse(){
+  const n=parseInt(document.getElementById('stim').value);
+  for(let i=0;i<n;i++) impulses.push({pos:0,speed:1+Math.random()*.25,age:0});
+}
+
+function loop(){
+  const spd=document.getElementById('spd').value/20;
+  if(playing){
     autoFire++;
-    const interval = Math.max(35, 110 - spd * 8);
-    if (autoFire > interval) { autoFire = 0; fireImpulse(); }
-    impulses.forEach(im => { im.pos += .0038 * spd * im.speed; im.age++; });
-    impulses = impulses.filter(im => im.pos < 1.08);
-    const main = impulses[0];
-    if (main) {
-      APHistory.push(apVoltage(main.pos));
-      if (APHistory.length > 300) APHistory.shift();
-      updateInfoPanel(main);
-    } else {
-      APHistory.push(-70);
-      if (APHistory.length > 300) APHistory.shift();
-      updateInfoPanel(null);
-    }
+    if(autoFire>Math.max(35,110-spd*8)){autoFire=0;fireImpulse();}
+    impulses.forEach(im=>{im.pos+=.0038*spd*im.speed;im.age++;});
+    impulses=impulses.filter(im=>im.pos<1.08);
+    const main=impulses[0];
+    APHistory.push(main?apV(main.pos):-70);
+    if(APHistory.length>300)APHistory.shift();
+    updateInfo(main||null);
   }
-  drawNeuron();
-  drawAPChart();
+  drawNeuron();drawChart();
   requestAnimationFrame(loop);
 }
 loop();
 
-function togglePlay() {
-  playing = !playing;
-  const b = document.getElementById('bPlay');
-  b.textContent = playing ? 'Pause' : 'Play';
-  b.classList.toggle('on', playing);
+// ── Controls ──────────────────────────────────────────────────────────────
+function togglePlay(){
+  playing=!playing;
+  const b=document.getElementById('bPlay'),T=TX[lang];
+  b.textContent=playing?T.pause:T.play;
+  b.classList.toggle('on',playing);
+}
+function fireNow(){impulses=[];autoFire=0;fireImpulse();}
+function resetSim(){
+  impulses=[];autoFire=0;APHistory.fill(-70);playing=true;
+  document.getElementById('bPlay').textContent=TX[lang].pause;
+  document.getElementById('bPlay').classList.add('on');
+  updateInfo(null);
+}
+function toggleLabels(){showLabels=!showLabels;document.getElementById('bLabel').classList.toggle('on',showLabels);}
+function goBack(){
+  document.getElementById('lbl-back').textContent=lang==='bn'?'যাচ্ছি...':'EXITING...';
+  setTimeout(()=>window.location.href='index.html',400);
 }
 
-function fireNow() {
-  impulses = [];
-  autoFire = 0;
-  fireImpulse();
-}
-
-function resetSim() {
-  impulses = [];
-  autoFire = 0;
-  APHistory.fill(-70);
-  playing = true;
-  const b = document.getElementById('bPlay');
-  b.textContent = 'Pause';
-  b.classList.add('on');
-  updateInfoPanel(null);
-}
-
-function toggleLabels() {
-  showLabels = !showLabels;
-  const b = document.getElementById('bLabel');
-  b.classList.toggle('on', showLabels);
-}
-
-document.getElementById('spd').addEventListener('input', function () {
-  document.getElementById('spdv').textContent = (Math.round(this.value / 20 * 10) / 10).toFixed(1) + 'x';
+document.getElementById('spd').addEventListener('input',function(){
+  document.getElementById('spdv').textContent=(Math.round(this.value/20*10)/10).toFixed(1)+'x';
 });
-document.getElementById('stim').addEventListener('input', function () {
-  document.getElementById('stimv').textContent = this.value;
+document.getElementById('stim').addEventListener('input',function(){
+  document.getElementById('stimv').textContent=this.value;
 });
 </script>
 </body>

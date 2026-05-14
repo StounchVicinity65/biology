@@ -1,1 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🧬 Mitosis Simulation</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#06130d;
+  --panel:#0d1f17;
+  --panel2:#11291f;
+  --accent:#56f0a7;
+  --accent2:#9effc8;
+  --accent3:#2fd67d;
+  --text:#d8ffe9;
+  --dim:#8bb39f;
+  --border:rgba(86,240,167,0.18);
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(86,240,167,0.09), transparent 40%),
+    radial-gradient(circle at bottom right, rgba(120,255,170,0.06), transparent 35%),
+    var(--bg);
+  color:var(--text);
+  overflow:hidden;
+}
+
+body.bangla{
+  font-family:'Noto Serif Bengali', serif;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(rgba(86,240,167,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(86,240,167,0.03) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+
+.topbar{
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 1.2rem;
+  background:rgba(6,19,13,0.88);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(10px);
+}
+
+.title{
+  font-size:1.4rem;
+  font-weight:800;
+  color:var(--accent);
+  letter-spacing:0.05em;
+}
+
+.lang-btn{
+  border:none;
+  background:rgba(255,255,255,0.06);
+  color:var(--text);
+  padding:0.5rem 0.9rem;
+  border-radius:999px;
+  cursor:pointer;
+  border:1px solid var(--border);
+}
+
+.layout{
+  display:flex;
+  height:calc(100vh - 64px);
+}
+
+.sidebar{
+  width:330px;
+  background:rgba(8,24,16,0.85);
+  border-right:1px solid var(--border);
+  padding:1rem;
+  overflow:auto;
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:1rem;
+  margin-bottom:1rem;
+}
+
+.panel-title{
+  color:var(--accent);
+  font-size:0.75rem;
+  text-transform:uppercase;
+  letter-spacing:0.18em;
+  margin-bottom:0.9rem;
+  font-weight:700;
+}
+
+.phase-name{
+  font-size:1.2rem;
+  font-weight:800;
+  margin-bottom:0.6rem;
+  color:var(--accent2);
+}
+
+.phase-desc{
+  color:var(--dim);
+  line-height:1.7;
+  font-size:0.9rem;
+}
+
+.controls{
+  display:flex;
+  flex-direction:column;
+  gap:0.8rem;
+}
+
+.btn-row{
+  display:flex;
+  gap:0.6rem;
+}
+
+.btn{
+  flex:1;
+  border:none;
+  padding:0.75rem;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
+  transition:0.2s;
+}
+
+.btn-play{
+  background:linear-gradient(135deg,#1ea85f,#0f6f3d);
+  color:white;
+}
+
+.btn-play:hover{
+  transform:translateY(-2px);
+  filter:brightness(1.1);
+}
+
+.btn-reset{
+  background:rgba(255,255,255,0.06);
+  color:var(--text);
+  border:1px solid var(--border);
+}
+
+.speed-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:0.3rem;
+}
+
+.speed-wrap label{
+  color:var(--dim);
+  font-size:0.84rem;
+}
+
+.speed-wrap input{
+  accent-color:var(--accent);
+}
+
+.timeline{
+  display:flex;
+  flex-direction:column;
+  gap:0.5rem;
+}
+
+.step{
+  padding:0.55rem 0.7rem;
+  border-radius:8px;
+  background:rgba(255,255,255,0.03);
+  color:var(--dim);
+  border:1px solid transparent;
+  transition:0.25s;
+  font-size:0.88rem;
+}
+
+.step.active{
+  background:rgba(86,240,167,0.1);
+  color:var(--accent2);
+  border-color:rgba(86,240,167,0.25);
+}
+
+.canvas-area{
+  flex:1;
+  position:relative;
+}
+
+canvas{
+  display:block;
+}
+
+.legend{
+  position:absolute;
+  left:16px;
+  bottom:16px;
+  display:flex;
+  gap:1rem;
+  flex-wrap:wrap;
+  background:rgba(0,0,0,0.35);
+  padding:0.7rem 1rem;
+  border-radius:12px;
+  border:1px solid var(--border);
+  backdrop-filter:blur(8px);
+}
+
+.legend-item{
+  display:flex;
+  align-items:center;
+  gap:0.45rem;
+  font-size:0.82rem;
+  color:var(--dim);
+}
+
+.dot{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+}
+
+.hidden{
+  display:none !important;
+}
+
+@media(max-width:900px){
+  .layout{
+    flex-direction:column;
+  }
+
+  .sidebar{
+    width:100%;
+    height:320px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="title">
+    <span class="lang-en">🧬 Mitosis Simulation</span>
+    <span class="lang-bn hidden">🧬 মাইটোসিস সিমুলেশন</span>
+  </div>
+
+  <button class="lang-btn" id="langBtn">বাংলা / EN</button>
+</div>
+
+<div class="layout">
+
+  <div class="sidebar">
+
+    <div class="panel">
+      <div class="panel-title">
+        <span class="lang-en">Current Phase</span>
+        <span class="lang-bn hidden">বর্তমান ধাপ</span>
+      </div>
+
+      <div class="phase-name" id="phaseName">Interphase</div>
+
+      <div class="phase-desc" id="phaseDesc">
+        The cell grows and duplicates DNA in preparation for division.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <span class="lang-en">Controls</span>
+        <span class="lang-bn hidden">নিয়ন্ত্রণ</span>
+      </div>
+
+      <div class="controls">
+
+        <div class="btn-row">
+          <button class="btn btn-play" onclick="toggleSim()" id="playBtn">
+            ▶ Start
+          </button>
+
+          <button class="btn btn-reset" onclick="resetSim()">
+            ↺ Reset
+          </button>
+        </div>
+
+        <div class="speed-wrap">
+          <label>
+            <span class="lang-en">Simulation Speed</span>
+            <span class="lang-bn hidden">সিমুলেশনের গতি</span>
+          </label>
+
+          <input type="range" id="speedSlider" min="0.5" max="3" value="1" step="0.1">
+        </div>
+
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <span class="lang-en">Stages</span>
+        <span class="lang-bn hidden">ধাপসমূহ</span>
+      </div>
+
+      <div class="timeline">
+        <div class="step active" id="s0">1. Interphase</div>
+        <div class="step" id="s1">2. Prophase</div>
+        <div class="step" id="s2">3. Prometaphase</div>
+        <div class="step" id="s3">4. Metaphase</div>
+        <div class="step" id="s4">5. Anaphase</div>
+        <div class="step" id="s5">6. Telophase</div>
+        <div class="step" id="s6">7. Cytokinesis</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="canvas-area">
+    <canvas id="canvas"></canvas>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="dot" style="background:#56f0a7"></div>
+        <span class="lang-en">Chromosomes</span>
+        <span class="lang-bn hidden">ক্রোমোজোম</span>
+      </div>
+
+      <div class="legend-item">
+        <div class="dot" style="background:#67b7ff"></div>
+        <span class="lang-en">Spindle Fibers</span>
+        <span class="lang-bn hidden">স্পিন্ডল ফাইবার</span>
+      </div>
+
+      <div class="legend-item">
+        <div class="dot" style="background:#ff78b7"></div>
+        <span class="lang-en">Nucleus</span>
+        <span class="lang-bn hidden">নিউক্লিয়াস</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let W,H,cx,cy;
+
+function resize(){
+  W = canvas.width = window.innerWidth - 330;
+  H = canvas.height = window.innerHeight - 64;
+
+  if(window.innerWidth <= 900){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight - 384;
+  }
+
+  cx = W/2;
+  cy = H/2;
+}
+
+window.addEventListener("resize", resize);
+resize();
+
+let running = false;
+let phase = 0;
+let timer = 0;
+
+const phases = [
+{
+name:"Interphase",
+bn:"ইন্টারফেজ",
+desc:"The cell grows and duplicates DNA in preparation for division.",
+bnDesc:"কোষ বৃদ্ধি পায় এবং বিভাজনের জন্য DNA অনুলিপি তৈরি করে।"
+},
+{
+name:"Prophase",
+bn:"প্রোফেজ",
+desc:"Chromatin condenses into visible chromosomes.",
+bnDesc:"ক্রোমাটিন সংকুচিত হয়ে দৃশ্যমান ক্রোমোজোমে পরিণত হয়।"
+},
+{
+name:"Prometaphase",
+bn:"প্রোমেটাফেজ",
+desc:"Nuclear membrane breaks down and spindle fibers attach.",
+bnDesc:"নিউক্লিয়ার ঝিল্লি ভেঙে যায় এবং স্পিন্ডল ফাইবার যুক্ত হয়।"
+},
+{
+name:"Metaphase",
+bn:"মেটাফেজ",
+desc:"Chromosomes align at the cell equator.",
+bnDesc:"ক্রোমোজোম কোষের মধ্যরেখায় সারিবদ্ধ হয়।"
+},
+{
+name:"Anaphase",
+bn:"অ্যানাফেজ",
+desc:"Sister chromatids separate toward opposite poles.",
+bnDesc:"সিস্টার ক্রোমাটিড বিপরীত মেরুর দিকে সরে যায়।"
+},
+{
+name:"Telophase",
+bn:"টেলোফেজ",
+desc:"Two nuclei reform around separated chromosomes.",
+bnDesc:"বিচ্ছিন্ন ক্রোমোজোমের চারপাশে দুটি নিউক্লিয়াস গঠিত হয়।"
+},
+{
+name:"Cytokinesis",
+bn:"সাইটোকাইনেসিস",
+desc:"The cytoplasm divides forming two daughter cells.",
+bnDesc:"সাইটোপ্লাজম বিভক্ত হয়ে দুটি কন্যা কোষ তৈরি হয়।"
+}
+];
+
+function updatePanel(){
+  const p = phases[phase];
+
+  document.getElementById("phaseName").textContent =
+    lang === "en" ? p.name : p.bn;
+
+  document.getElementById("phaseDesc").textContent =
+    lang === "en" ? p.desc : p.bnDesc;
+
+  for(let i=0;i<7;i++){
+    document.getElementById("s"+i).classList.remove("active");
+  }
+
+  document.getElementById("s"+phase).classList.add("active");
+}
+
+function toggleSim(){
+  running = !running;
+
+  document.getElementById("playBtn").textContent =
+    running ? "⏸ Pause" : "▶ Start";
+}
+
+function resetSim(){
+  running = false;
+  phase = 0;
+  timer = 0;
+  updatePanel();
+  document.getElementById("playBtn").textContent = "▶ Start";
+}
+
+let lang = "en";
+
+document.getElementById("langBtn").addEventListener("click",()=>{
+
+  lang = lang === "en" ? "bn" : "en";
+
+  document.querySelectorAll(".lang-en").forEach(el=>{
+    el.classList.toggle("hidden",lang !== "en");
+  });
+
+  document.querySelectorAll(".lang-bn").forEach(el=>{
+    el.classList.toggle("hidden",lang !== "bn");
+  });
+
+  document.body.classList.toggle("bangla",lang==="bn");
+
+  updatePanel();
+});
+
+updatePanel();
+
+function drawCellBase(){
+  ctx.beginPath();
+  ctx.fillStyle = "#123625";
+  ctx.arc(cx,cy,180,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = "rgba(86,240,167,0.25)";
+  ctx.stroke();
+}
+
+function drawNucleus(alpha=1){
+  ctx.beginPath();
+  ctx.fillStyle = `rgba(255,120,183,${alpha})`;
+  ctx.arc(cx,cy,85,0,Math.PI*2);
+  ctx.fill();
+}
+
+function chromosome(x,y,angle=0){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(angle);
+
+  ctx.strokeStyle="#56f0a7";
+  ctx.lineWidth=7;
+
+  ctx.beginPath();
+  ctx.moveTo(-12,-20);
+  ctx.lineTo(0,0);
+  ctx.lineTo(12,-20);
+
+  ctx.moveTo(-12,20);
+  ctx.lineTo(0,0);
+  ctx.lineTo(12,20);
+
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function spindle(x1,y1,x2,y2){
+  ctx.strokeStyle="rgba(103,183,255,0.7)";
+  ctx.lineWidth=2;
+
+  ctx.beginPath();
+  ctx.moveTo(x1,y1);
+  ctx.lineTo(x2,y2);
+  ctx.stroke();
+}
+
+function draw(){
+  requestAnimationFrame(draw);
+
+  ctx.clearRect(0,0,W,H);
+
+  drawCellBase();
+
+  let speed = parseFloat(document.getElementById("speedSlider").value);
+
+  if(running){
+    timer += 0.01 * speed;
+
+    if(timer >= 1){
+      timer = 0;
+      phase++;
+
+      if(phase > 6){
+        phase = 0;
+      }
+
+      updatePanel();
+    }
+  }
+
+  switch(phase){
+
+    case 0:
+      drawNucleus(1);
+
+      for(let i=0;i<12;i++){
+        let a = i*Math.PI*2/12;
+        chromosome(
+          cx + Math.cos(a)*40,
+          cy + Math.sin(a)*40,
+          a
+        );
+      }
+    break;
+
+    case 1:
+      drawNucleus(0.5);
+
+      for(let i=0;i<8;i++){
+        let a = i*Math.PI*2/8;
+        chromosome(
+          cx + Math.cos(a)*70,
+          cy + Math.sin(a)*70,
+          a + timer
+        );
+      }
+    break;
+
+    case 2:
+      for(let i=0;i<8;i++){
+        let y = cy - 120 + i*30;
+
+        chromosome(cx,y,Math.PI/2);
+
+        spindle(cx-160,cy,cx,y);
+        spindle(cx+160,cy,cx,y);
+      }
+    break;
+
+    case 3:
+      for(let i=0;i<8;i++){
+        let y = cy - 120 + i*30;
+
+        chromosome(cx,y,Math.PI/2);
+
+        spindle(cx-160,cy,cx,y);
+        spindle(cx+160,cy,cx,y);
+      }
+
+      ctx.strokeStyle="#ffffff33";
+      ctx.setLineDash([8,8]);
+
+      ctx.beginPath();
+      ctx.moveTo(cx,cy-170);
+      ctx.lineTo(cx,cy+170);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+    break;
+
+    case 4:
+      for(let i=0;i<8;i++){
+
+        let y = cy - 120 + i*30;
+
+        let shift = timer*130;
+
+        chromosome(cx-shift,y,Math.PI/2);
+        chromosome(cx+shift,y,Math.PI/2);
+
+        spindle(cx-160,cy,cx-shift,y);
+        spindle(cx+160,cy,cx+shift,y);
+      }
+    break;
+
+    case 5:
+      drawNucleus(0.8);
+
+      ctx.beginPath();
+      ctx.fillStyle="rgba(255,120,183,0.7)";
+      ctx.arc(cx-90,cy,60,0,Math.PI*2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(cx+90,cy,60,0,Math.PI*2);
+      ctx.fill();
+
+      for(let i=0;i<6;i++){
+        chromosome(cx-90 + Math.cos(i)*25,cy + Math.sin(i)*25,i);
+        chromosome(cx+90 + Math.cos(i)*25,cy + Math.sin(i)*25,i);
+      }
+    break;
+
+    case 6:
+      ctx.beginPath();
+      ctx.fillStyle="#123625";
+      ctx.arc(cx-120,cy,140,0,Math.PI*2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(cx+120,cy,140,0,Math.PI*2);
+      ctx.fill();
+
+      ctx.strokeStyle="rgba(86,240,167,0.25)";
+      ctx.lineWidth=5;
+
+      ctx.stroke();
+
+      drawNucleus(0);
+
+      ctx.beginPath();
+      ctx.fillStyle="rgba(255,120,183,0.8)";
+      ctx.arc(cx-120,cy,55,0,Math.PI*2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(cx+120,cy,55,0,Math.PI*2);
+      ctx.fill();
+
+      for(let i=0;i<5;i++){
+        chromosome(cx-120 + Math.cos(i)*22,cy + Math.sin(i)*22,i);
+        chromosome(cx+120 + Math.cos(i)*22,cy + Math.sin(i)*22,i);
+      }
+    break;
+  }
+
+  ctx.fillStyle="rgba(255,255,255,0.08)";
+
+  for(let i=0;i<60;i++){
+    ctx.beginPath();
+    ctx.arc(
+      (i*137)%W,
+      (i*89 + performance.now()*0.01)%H,
+      2,
+      0,
+      Math.PI*2
+    );
+    ctx.fill();
+  }
+}
+
+draw();
+</script>
+
+</body>
+</html>

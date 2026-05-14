@@ -17,10 +17,8 @@
       --text: #d1f8e0;
       --text-dim: #86efac;
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-
     body {
       font-family: 'Exo 2', sans-serif;
       background: var(--bg);
@@ -29,7 +27,6 @@
       overflow-x: hidden;
     }
     body.bangla { font-family: 'Noto Serif Bengali', sans-serif; }
-
     /* ── BACKGROUND ── */
     .bg-layer {
       position: fixed; inset: 0; z-index: -3;
@@ -50,7 +47,6 @@
         rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
       );
     }
-
     /* ── PARTICLES ── */
     .particles {
       position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
@@ -61,15 +57,14 @@
       background: var(--green);
       border-radius: 50%;
       opacity: 0;
-      animation: particleDrift var(--dur, 12s) var(--delay, 0s) ease-in-out infinite;
+      animation: particleDrift var(--dur, 6s) var(--delay, 0s) ease-in-out infinite;
     }
     @keyframes particleDrift {
-      0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
-      10%  { opacity: 0.6; }
-      90%  { opacity: 0.3; }
+      0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+      10% { opacity: 0.6; }
+      90% { opacity: 0.3; }
       100% { transform: translateY(-10vh) translateX(var(--drift, 40px)); opacity: 0; }
     }
-
     /* ── HEADER ── */
     header {
       text-align: center;
@@ -77,7 +72,6 @@
       position: relative;
       z-index: 10;
     }
-
     /* Top bar */
     .topbar {
       position: fixed; top: 0; left: 0; right: 0;
@@ -97,7 +91,6 @@
       text-transform: uppercase;
     }
     .topbar-logo span { color: var(--green); }
-
     .nav-btn {
       padding: 8px 20px;
       background: transparent;
@@ -110,7 +103,7 @@
       font-weight: 700;
       letter-spacing: 1.4px;
       text-transform: uppercase;
-      transition: all .25s;
+      transition: all .15s;
       position: relative;
       overflow: hidden;
     }
@@ -119,12 +112,11 @@
       position: absolute; inset: 0;
       background: var(--green);
       transform: translateX(-100%);
-      transition: transform .25s;
+      transition: transform .15s;
       z-index: -1;
     }
     .nav-btn:hover::before { transform: translateX(0); }
     .nav-btn:hover { color: #000; box-shadow: 0 0 20px var(--glow); border-color: var(--green); }
-
     /* ── HERO TEXT ── */
     .hero-eyebrow {
       font-family: 'Share Tech Mono', monospace;
@@ -134,7 +126,7 @@
       text-transform: uppercase;
       margin-bottom: 10px;
       opacity: 0;
-      animation: fadeSlideUp .6s .2s forwards;
+      animation: fadeSlideUp .3s .1s forwards;
     }
     h1 {
       font-family: 'Bebas Neue', sans-serif;
@@ -146,7 +138,7 @@
         0 0 40px rgba(74,222,128,.65),
         0 0 100px rgba(34,197,94,.2);
       opacity: 0;
-      animation: fadeSlideUp .7s .35s forwards;
+      animation: fadeSlideUp .35s .15s forwards;
       position: relative;
     }
     h1::after {
@@ -164,31 +156,28 @@
       letter-spacing: 4px;
       margin-top: 8px;
       opacity: 0;
-      animation: fadeSlideUp .6s .5s forwards;
+      animation: fadeSlideUp .3s .25s forwards;
     }
-
     /* Divider */
     .hero-divider {
       width: 180px; height: 1px;
       background: linear-gradient(90deg, transparent, var(--green), transparent);
       margin: 28px auto 0;
       opacity: 0;
-      animation: fadeIn .8s .65s forwards;
+      animation: fadeIn .4s .3s forwards;
     }
-
     @keyframes fadeSlideUp {
       from { opacity: 0; transform: translateY(22px); }
-      to   { opacity: 1; transform: translateY(0); }
+      to { opacity: 1; transform: translateY(0); }
     }
     @keyframes fadeIn {
       from { opacity: 0; } to { opacity: 1; }
     }
-
     /* ── STATS BAR ── */
     .stats-bar {
       display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;
       padding: 22px 20px 0;
-      opacity: 0; animation: fadeIn .8s .8s forwards;
+      opacity: 0; animation: fadeIn .4s .4s forwards;
     }
     .stat {
       text-align: center;
@@ -208,7 +197,6 @@
       letter-spacing: 2px;
       text-transform: uppercase;
     }
-
     /* ── CONTAINER / GRID ── */
     .container {
       max-width: 1200px;
@@ -216,7 +204,6 @@
       padding: 20px 24px 80px;
       position: relative; z-index: 5;
     }
-
     .section-label {
       font-family: 'Share Tech Mono', monospace;
       font-size: 0.7rem;
@@ -227,50 +214,44 @@
       padding-bottom: 32px;
     }
     .section-label span { color: var(--green); }
-
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
       gap: 24px;
     }
-
     /* ── CARDS ── */
     .card {
       background: linear-gradient(155deg, rgba(1,10,4,0.92) 0%, rgba(3,26,8,0.88) 55%, rgba(2,12,5,0.92) 100%);
       border: 1px solid rgba(74,222,128,0.18);
       border-radius: 6px;
       overflow: hidden;
-      transition: transform .4s cubic-bezier(.175,.885,.32,1.275), box-shadow .4s, border-color .3s;
+      transition: transform .25s cubic-bezier(.175,.885,.32,1.275), box-shadow .25s, border-color .2s;
       cursor: pointer;
       position: relative;
       opacity: 0;
-      animation: cardReveal .6s forwards;
+      animation: cardReveal .35s forwards;
     }
-    .card:nth-child(1) { animation-delay: .9s; }
-    .card:nth-child(2) { animation-delay: 1.05s; }
-    .card:nth-child(3) { animation-delay: 1.2s; }
-
+    .card:nth-child(1) { animation-delay: .45s; }
+    .card:nth-child(2) { animation-delay: .55s; }
+    .card:nth-child(3) { animation-delay: .65s; }
     @keyframes cardReveal {
       from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
+      to { opacity: 1; transform: translateY(0); }
     }
-
     .card:hover {
       transform: translateY(-12px) scale(1.012);
       box-shadow: 0 30px 70px rgba(0,0,0,.9), 0 0 60px rgba(74,222,128,.22);
       border-color: rgba(74,222,128,.55);
     }
-
     /* Shimmer on hover */
     .card::before {
       content: '';
       position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
       background: linear-gradient(90deg, transparent, rgba(74,222,128,0.04), transparent);
-      transition: left .55s ease;
+      transition: left .3s ease;
       z-index: 0;
     }
     .card:hover::before { left: 140%; }
-
     /* ── CARD HEADER ── */
     .card-header {
       height: 190px;
@@ -279,31 +260,27 @@
       overflow: hidden;
       border-bottom: 1px solid rgba(74,222,128,0.12);
     }
-
     .card-header-bg {
       position: absolute; inset: 0;
-      opacity: 0; transition: opacity .4s;
+      opacity: 0; transition: opacity .25s;
     }
     .card:hover .card-header-bg { opacity: 1; }
-
     /* DNA bg pattern */
     .dna-bg { background: radial-gradient(ellipse at 50% 50%, rgba(74,222,128,0.06) 0%, transparent 70%); }
     /* Neuron bg */
     .neuron-bg { background: radial-gradient(ellipse at 50% 50%, rgba(74,222,128,0.06) 0%, transparent 70%); }
     /* Mitosis bg */
     .mitosis-bg { background: radial-gradient(ellipse at 50% 50%, rgba(74,222,128,0.06) 0%, transparent 70%); }
-
     .card-icon {
       font-size: 5rem;
       position: relative; z-index: 1;
-      transition: transform .4s cubic-bezier(.175,.885,.32,1.3), filter .4s;
+      transition: transform .25s cubic-bezier(.175,.885,.32,1.3), filter .25s;
       filter: drop-shadow(0 0 12px rgba(74,222,128,0.3));
     }
     .card:hover .card-icon {
       transform: scale(1.15) rotate(3deg);
       filter: drop-shadow(0 0 28px rgba(74,222,128,0.65));
     }
-
     /* Tag */
     .card-tag {
       position: absolute; top: 14px; left: 14px;
@@ -317,7 +294,6 @@
       padding: 3px 8px;
       text-transform: uppercase;
     }
-
     /* Pulse ring */
     .pulse-wrap {
       position: absolute; bottom: 14px; right: 14px;
@@ -328,20 +304,18 @@
       transform: translate(-50%,-50%);
       border: 1px solid rgba(74,222,128,0.4);
       border-radius: 50%;
-      animation: pulseExpand 3s ease-out infinite;
+      animation: pulseExpand 1.8s ease-out infinite;
     }
-    .pulse-ring:nth-child(2) { animation-delay: 1s; }
+    .pulse-ring:nth-child(2) { animation-delay: 0.6s; }
     @keyframes pulseExpand {
-      0%  { width: 6px; height: 6px; opacity: 0.9; }
+      0% { width: 6px; height: 6px; opacity: 0.9; }
       100%{ width: 40px; height: 40px; opacity: 0; }
     }
-
     /* ── CARD BODY ── */
     .card-body {
       padding: 26px 26px 22px;
       position: relative; z-index: 1;
     }
-
     .card-meta {
       font-family: 'Share Tech Mono', monospace;
       font-size: 0.62rem;
@@ -350,7 +324,6 @@
       text-transform: uppercase;
       margin-bottom: 8px;
     }
-
     .card-title {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 2.1rem;
@@ -359,7 +332,6 @@
       margin-bottom: 12px;
       line-height: 1;
     }
-
     .card-desc {
       font-size: 0.9rem;
       line-height: 1.7;
@@ -367,7 +339,6 @@
       opacity: 0.85;
       min-height: 60px;
     }
-
     /* Progress bar */
     .card-progress {
       margin-top: 18px;
@@ -391,16 +362,15 @@
       height: 100%;
       background: linear-gradient(90deg, var(--green-dim), var(--green));
       border-radius: 2px;
-      animation: progressLoad 1.8s ease-out forwards;
+      animation: progressLoad 0.9s ease-out forwards;
       width: 0;
     }
     @keyframes progressLoad {
       from { width: 0; }
     }
-    .card:nth-child(1) .progress-fill { animation-delay: 1.5s; }
-    .card:nth-child(2) .progress-fill { animation-delay: 1.65s; }
-    .card:nth-child(3) .progress-fill { animation-delay: 1.8s; }
-
+    .card:nth-child(1) .progress-fill { animation-delay: 0.75s; }
+    .card:nth-child(2) .progress-fill { animation-delay: 0.85s; }
+    .card:nth-child(3) .progress-fill { animation-delay: 0.95s; }
     /* Open button */
     .open-btn {
       margin-top: 20px;
@@ -416,14 +386,14 @@
       text-transform: uppercase;
       font-size: 0.8rem;
       position: relative; overflow: hidden;
-      transition: color .3s, border-color .3s, box-shadow .3s;
+      transition: color .2s, border-color .2s, box-shadow .2s;
     }
     .open-btn::after {
       content: '';
       position: absolute; bottom: 0; left: 0;
       width: 0; height: 100%;
       background: var(--green);
-      transition: width .35s cubic-bezier(.77,0,.18,1);
+      transition: width .2s cubic-bezier(.77,0,.18,1);
       z-index: -1;
     }
     .card:hover .open-btn {
@@ -432,7 +402,6 @@
       box-shadow: 0 0 22px rgba(74,222,128,0.35);
     }
     .card:hover .open-btn::after { width: 100%; }
-
     /* ── BOTTOM STATUS BAR ── */
     .status-bar {
       position: fixed; bottom: 0; left: 0; right: 0;
@@ -454,11 +423,10 @@
       display: inline-block; width: 5px; height: 5px;
       background: var(--green-d); border-radius: 50%;
       margin-right: 6px;
-      animation: blink 2.4s ease-in-out infinite;
+      animation: blink 1.4s ease-in-out infinite;
       vertical-align: middle;
     }
     @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.2;} }
-
     /* ── RESPONSIVE ── */
     @media (max-width: 640px) {
       header { padding: 4.5rem 1rem 2.5rem; }
@@ -473,10 +441,8 @@
   <div class="bg-layer"></div>
   <div class="bg-grad"></div>
   <div class="scanlines"></div>
-
   <!-- Particles -->
   <div class="particles" id="particles"></div>
-
   <!-- Top nav -->
   <nav class="topbar">
     <span class="topbar-logo">BIO<span>SIM</span> / v2.4.1</span>
@@ -485,26 +451,21 @@
       <button class="nav-btn" onclick="toggleLanguage()">🌐 বাংলা / EN</button>
     </div>
   </nav>
-
   <!-- Hero -->
   <header>
     <p class="hero-eyebrow" id="eyebrow">INTERACTIVE BIOLOGY PLATFORM</p>
     <h1 id="mainTitle">BIOSIM</h1>
     <p id="mainSubtitle" class="subtitle">BIOLOGY SIMULATION LAB</p>
     <div class="hero-divider"></div>
-
     <div class="stats-bar">
       <div class="stat"><span class="stat-num">3</span><span class="stat-label">Modules</span></div>
       <div class="stat"><span class="stat-num">HD</span><span class="stat-label">Rendering</span></div>
       <div class="stat"><span class="stat-num">∞</span><span class="stat-label">Iterations</span></div>
     </div>
   </header>
-
   <div class="container">
     <p class="section-label">[ <span>SELECT MODULE</span> ] ── CHOOSE YOUR SIMULATION</p>
-
     <div class="grid">
-
       <!-- DNA -->
       <div class="card" onclick="openSim('dna', event)">
         <div class="card-header">
@@ -528,7 +489,6 @@
           <button class="open-btn" data-en="INITIATE SIMULATION" data-bn="সিমুলেশন শুরু করুন">INITIATE SIMULATION</button>
         </div>
       </div>
-
       <!-- Neuron -->
       <div class="card" onclick="openSim('neuron', event)">
         <div class="card-header">
@@ -552,7 +512,6 @@
           <button class="open-btn" data-en="INITIATE SIMULATION" data-bn="সিমুলেশন শুরু করুন">INITIATE SIMULATION</button>
         </div>
       </div>
-
       <!-- Mitosis -->
       <div class="card" onclick="openSim('mitosis', event)">
         <div class="card-header">
@@ -576,17 +535,14 @@
           <button class="open-btn" data-en="INITIATE SIMULATION" data-bn="সিমুলেশন শুরু করুন">INITIATE SIMULATION</button>
         </div>
       </div>
-
     </div>
   </div>
-
   <!-- Status bar -->
   <div class="status-bar">
     <span class="status-left"><span class="status-dot"></span>SYSTEM ONLINE</span>
     <span class="status-right" id="clock">--:--:--</span>
     <span class="status-right">BD / DHK</span>
   </div>
-
   <script>
     /* ── Particles ── */
     (function() {
@@ -596,8 +552,8 @@
         p.className = 'particle';
         p.style.cssText = `
           left: ${Math.random()*100}%;
-          --dur: ${10 + Math.random()*14}s;
-          --delay: ${Math.random()*10}s;
+          --dur: ${5 + Math.random()*7}s;
+          --delay: ${Math.random()*5}s;
           --drift: ${(Math.random()-.5)*80}px;
           width: ${Math.random() > 0.7 ? 3 : 2}px;
           height: ${Math.random() > 0.7 ? 3 : 2}px;
@@ -606,7 +562,6 @@
         wrap.appendChild(p);
       }
     })();
-
     /* ── Clock ── */
     function updateClock() {
       const now = new Date();
@@ -615,7 +570,6 @@
     }
     updateClock();
     setInterval(updateClock, 1000);
-
     /* ── Language ── */
     let isBangla = false;
     function toggleLanguage() {
@@ -623,29 +577,26 @@
       document.querySelectorAll('[data-en]').forEach(el => {
         el.textContent = isBangla ? el.getAttribute('data-bn') : el.getAttribute('data-en');
       });
-      document.getElementById('mainTitle').textContent     = isBangla ? 'বায়োসিম'                : 'BIOSIM';
-      document.getElementById('mainSubtitle').textContent  = isBangla ? 'জীববিজ্ঞান সিমুলেশন ল্যাব' : 'BIOLOGY SIMULATION LAB';
-      document.getElementById('eyebrow').textContent       = isBangla ? 'ইন্টারেক্টিভ জীববিজ্ঞান প্ল্যাটফর্ম' : 'INTERACTIVE BIOLOGY PLATFORM';
+      document.getElementById('mainTitle').textContent = isBangla ? 'বায়োসিম' : 'BIOSIM';
+      document.getElementById('mainSubtitle').textContent = isBangla ? 'জীববিজ্ঞান সিমুলেশন ল্যাব' : 'BIOLOGY SIMULATION LAB';
+      document.getElementById('eyebrow').textContent = isBangla ? 'ইন্টারেক্টিভ জীববিজ্ঞান প্ল্যাটফর্ম' : 'INTERACTIVE BIOLOGY PLATFORM';
       document.body.classList.toggle('bangla', isBangla);
     }
-
     /* ── Open sim ── */
     function openSim(sim, e) {
       const card = e.currentTarget;
-      const btn  = card.querySelector('.open-btn');
+      const btn = card.querySelector('.open-btn');
       btn.textContent = isBangla ? 'লোড হচ্ছে...' : 'INITIALIZING...';
-      btn.style.background   = 'var(--green)';
-      btn.style.color        = '#000';
-
+      btn.style.background = 'var(--green)';
+      btn.style.color = '#000';
       const urls = { dna: 'dna.html', neuron: 'neuron.html', mitosis: 'mitosis.html' };
-      setTimeout(() => { if (urls[sim]) window.location.href = urls[sim]; }, 420);
+      setTimeout(() => { if (urls[sim]) window.location.href = urls[sim]; }, 280);
     }
-
     /* ── Portal ── */
     function goToPortal() {
       setTimeout(() => {
         window.location.href = 'https://stounchvicinity65.github.io/portal/';
-      }, 380);
+      }, 220);
     }
   </script>
 </body>
